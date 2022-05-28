@@ -50,7 +50,14 @@ def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_datalo
             labels = labels.to(opt.device)
             preds = model(images)
 
-            loss = criterion(preds, labels)
+            if opt.training_type == "error_map":
+                label_error_map = labels-images
+                loss = criterion(preds, label_error_map)
+            elif opt.training_type=="addition":
+                preds = preds+images
+                loss = criterion(preds, labels)
+            else:
+                loss = criterion(preds, labels)
 
             # epoch_losses.update(loss.item(), len(images))
             update_epoch_losses(epoch_losses, count=len(images),values=[loss.item()])
@@ -67,6 +74,7 @@ def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_datalo
                 os.makedirs(opt.checkpoints_dir)
             path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
             torch.save({
+                    'training_type':opt.training_type,
                     'epoch': epoch,
                     'growth_rate': opt.growth_rate,
                     'num_blocks':opt.num_blocks,
@@ -78,7 +86,7 @@ def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_datalo
     return images
 
 
-def validate_srdense(opt,model, dataloader,criterion=nn.MSELoss()):
+def validate_srdense(opt,model, dataloader,criterion=nn.MSELoss(),addition=False):
     model.eval()
     l1_loss = nn.L1Loss()
     count,psnr,ssim,loss,l1,hfen = 0,0,0,0,0,0
@@ -87,6 +95,8 @@ def validate_srdense(opt,model, dataloader,criterion=nn.MSELoss()):
             image = image.to(opt.device)
             label = label.to(opt.device)
             output = model(image)
+            if addition:
+                output = output+image
             loss += criterion(output,label) 
             l1 += l1_loss(output,label)
             count += len(label)
@@ -162,3 +172,40 @@ def train_epoch_patch_gan(opt,model,train_dl, epoch, epoch_losses):
         # torch.save(model.state_dict(), path)
     return images
 
+
+def train_epoch_srdense_error_map(opt,model,criterion,optimizer,train_dataset,train_dataloader,epoch,epoch_losses): 
+    with tqdm(total=(len(train_dataset) - len(train_dataset) % opt.batch_size), ncols=80) as t:
+        t.set_description('epoch: {}/{}'.format(epoch, opt.num_epochs - 1))
+
+        for idx, (images, labels) in enumerate(train_dataloader):
+            images = images.to(opt.device)
+            labels = labels.to(opt.device)
+            preds = model(images)
+            label_error_map = labels-images
+
+            loss = criterion(preds, label_error_map)
+
+            # epoch_losses.update(loss.item(), len(images))
+            update_epoch_losses(epoch_losses, count=len(images),values=[loss.item()])
+            
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            t.set_postfix(loss='{:.6f}'.format(epoch_losses['train_loss'].avg))
+            t.update(len(images))
+
+        if epoch % opt.n_freq==0:
+            if not os.path.exists(opt.checkpoints_dir):
+                os.makedirs(opt.checkpoints_dir)
+            path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
+            torch.save({
+                    'epoch': epoch,
+                    'growth_rate': opt.growth_rate,
+                    'num_blocks':opt.num_blocks,
+                    'num_layers':opt.num_layers,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    }, path)
+            # torch.save(model.state_dict(), os.path.join(config['outputs_dir'], 'epoch_{}_f_{}.pth'.format(epoch,args.factor)))
+    return images

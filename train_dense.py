@@ -31,7 +31,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
        
         epoch_losses = create_loss_meters_srdense()  #create a dictionary
         images = train_epoch_srdense(opt,model,criterion,optimizer,train_datasets,train_dataloader,epoch,epoch_losses)
-        eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen = validate_srdense(opt,model, eval_dataloader,criterion)
+        eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen = validate_srdense(opt,model, eval_dataloader,criterion,addition=opt.addition)
         
         apply_model(model,epoch,opt,addition=False)
 
@@ -117,10 +117,15 @@ if __name__ == "__main__":
         model = nn.DataParallel(model,device_ids=[*range(num_of_gpus)])
 
     # setup loss and optimizer 
-
     criterion = get_criterion(opt)
     optimizer = get_optimizer(opt,model)
 
+
+    # setup a output strategy based on training type
+    if opt.training_type in ['addition','error_map']:
+        opt.addition=True
+    else:
+        opt.addition=False
 
 
     print('training for factor ',opt.factor)

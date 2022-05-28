@@ -1,16 +1,8 @@
-#configuration file
-#this is file for training srdense net 
 
-#task remaining
-#srgan training
-# eval for models
-#visualization 
-#wb visualize
-# resuming training setup
 
 model_name: 'srdense'
-exp_name: 'srdense_test'
-training_type: 'original'
+exp_name: 'srdense_error_map'
+training_type: 'error_map'  #options: error_map,normal,addition
 project_name: 'super_resolution'
 wandb: True 
 dataset_size: resolution_dataset50
@@ -34,6 +26,3 @@ num_layers: 5
 weights_file: None
 scale: 4
 patch: False
-
-
-
