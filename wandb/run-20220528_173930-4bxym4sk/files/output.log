@@ -1,0 +1,10 @@
+
+epoch: 0/19:   0%|                                      | 0/192 [00:02<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/cidar/Desktop/refactor2/train_dense.py", line 151, in <module>
+    train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb = wandb)
+  File "/home/cidar/Desktop/refactor2/train_dense.py", line 33, in train
+    images = train_epoch_srdense(opt,model,criterion,optimizer,train_datasets,train_dataloader,epoch,epoch_losses)
+  File "/home/cidar/Desktop/refactor2/utils/train_epoch.py", line 57, in train_epoch_srdense
+    if opt.tensorboard:
+AttributeError: 'Namespace' object has no attribute 'tensorboard'

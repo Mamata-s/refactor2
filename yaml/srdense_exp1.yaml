@@ -1,0 +1,38 @@
+#configuration file
+#this is file for training srdense net 
+
+#task remaining
+#srgan training
+# eval for models
+#visualization 
+#wb visualize
+# resuming training setup
+
+model_name: 'srdense'
+exp_name: 'srdense_test'
+project_name: 'super_resolution'
+wandb: True 
+dataset_size: resolution_dataset50
+dataset_name: 'z_axis'
+num_epochs: 20
+num_workers: 8
+seed: 123
+lr: 0.0001
+n_freq: 5
+batch_size: 32
+train_batch_size: 32
+val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
+# opt.device: cpu or gpu during training
+factor: 2
+#srdense
+criterion: mse
+optimizer: adam
+growth_rate: 7
+num_blocks: 5
+num_layers: 5
+weights_file: None
+scale: 4
+patch: False
+
+
+

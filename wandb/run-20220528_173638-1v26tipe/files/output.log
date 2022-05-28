@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/cidar/Desktop/refactor2/train_dense.py", line 150, in <module>
+    train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb = wandb)
+  File "/home/cidar/Desktop/refactor2/train_dense.py", line 25, in train
+    adjust_learning_rate(optimizer, epoch,opt)
+  File "/home/cidar/Desktop/refactor2/utils/train_utils.py", line 45, in adjust_learning_rate
+    if opt.tensorboard:
+AttributeError: 'Namespace' object has no attribute 'tensorboard'

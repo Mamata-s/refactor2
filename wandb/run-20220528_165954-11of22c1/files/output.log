@@ -1,0 +1,153 @@
+
+ 29%|████████████████████████████████████████████▎                                                                                                              | 2/7 [00:01<00:03,  1.45it/s]
+loss_D_fake: 1.20557
+loss_D_real: 1.36975
+loss_D: 1.28766
+loss_G_GAN: 0.88965
+loss_G_L1: 91.63446
+
+ 86%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                      | 6/7 [00:03<00:00,  1.78it/s]
+Image saved as outputs/resolution_dataset50/patch_gan/patch_gan_test/epoch_images/z_axis/factor_2/epoch_0.png
+eval psnr: 12.7335
+
+ 71%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████▋                                            | 5/7 [00:02<00:00,  2.21it/s]
+loss_D_fake: 0.34595
+loss_D_real: 0.30420
+loss_D: 0.32508
+loss_G_GAN: 0.58029
+loss_G_L1: 67.60152
+
+ 86%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                      | 6/7 [00:02<00:00,  2.14it/s]
+Image saved as outputs/resolution_dataset50/patch_gan/patch_gan_test/epoch_images/z_axis/factor_2/epoch_1.png
+eval psnr: 13.4266
+ 57%|████████████████████████████████████████████████████████████████████████████████████████▌                                                                  | 4/7 [00:01<00:01,  2.19it/s]
+loss_D_fake: 0.22875
+loss_D_real: 0.13257
+loss_D: 0.18066
+loss_G_GAN: 0.66924
+loss_G_L1: 54.71985
+
+ 86%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                      | 6/7 [00:02<00:00,  2.14it/s]
+  0%|                                                                                                                                                                   | 0/7 [00:00<?, ?it/s]
+Image saved as outputs/resolution_dataset50/patch_gan/patch_gan_test/epoch_images/z_axis/factor_2/epoch_2.png
+
+ 57%|████████████████████████████████████████████████████████████████████████████████████████▌                                                                  | 4/7 [00:01<00:01,  2.18it/s]
+loss_D_fake: 0.16690
+loss_D_real: 0.08774
+loss_D: 0.12732
+loss_G_GAN: 0.74543
+loss_G_L1: 45.75268
+
+ 86%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                      | 6/7 [00:02<00:00,  2.13it/s]
+Image saved as outputs/resolution_dataset50/patch_gan/patch_gan_test/epoch_images/z_axis/factor_2/epoch_3.png
+eval psnr: 12.4383
+ 29%|████████████████████████████████████████████▎                                                                                                              | 2/7 [00:01<00:02,  2.02it/s]
+loss_D_fake: 0.21901
+loss_D_real: 0.85281
+loss_D: 0.53591
+loss_G_GAN: 0.80372
+loss_G_L1: 39.82640
+
+ 86%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                      | 6/7 [00:02<00:00,  2.13it/s]
+Image saved as outputs/resolution_dataset50/patch_gan/patch_gan_test/epoch_images/z_axis/factor_2/epoch_4.png
+eval psnr: 11.5651
+
+ 71%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████▋                                            | 5/7 [00:02<00:00,  2.21it/s]
+loss_D_fake: 0.14943
+loss_D_real: 0.07551
+loss_D: 0.11247
+loss_G_GAN: 0.76013
+loss_G_L1: 34.89518
+
+ 86%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                      | 6/7 [00:02<00:00,  2.13it/s]
+Image saved as outputs/resolution_dataset50/patch_gan/patch_gan_test/epoch_images/z_axis/factor_2/epoch_5.png
+eval psnr: 10.8292
+
+ 57%|████████████████████████████████████████████████████████████████████████████████████████▌                                                                  | 4/7 [00:01<00:01,  2.18it/s]
+loss_D_fake: 0.12407
+loss_D_real: 0.03651
+loss_D: 0.08029
+loss_G_GAN: 0.83079
+loss_G_L1: 31.15957
+
+ 86%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                      | 6/7 [00:02<00:00,  2.13it/s]
+Image saved as outputs/resolution_dataset50/patch_gan/patch_gan_test/epoch_images/z_axis/factor_2/epoch_6.png
+eval psnr: 10.6153
+ 43%|██████████████████████████████████████████████████████████████████▍                                                                                        | 3/7 [00:01<00:01,  2.13it/s]
+loss_D_fake: 0.11436
+loss_D_real: 0.02960
+loss_D: 0.07198
+loss_G_GAN: 0.87570
+loss_G_L1: 28.39061
+
+ 86%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                      | 6/7 [00:02<00:00,  2.13it/s]
+Image saved as outputs/resolution_dataset50/patch_gan/patch_gan_test/epoch_images/z_axis/factor_2/epoch_7.png
+eval psnr: 10.5056
+ 29%|████████████████████████████████████████████▎                                                                                                              | 2/7 [00:01<00:02,  1.97it/s]
+loss_D_fake: 0.10756
+loss_D_real: 0.02649
+loss_D: 0.06702
+loss_G_GAN: 0.90490
+loss_G_L1: 25.93448
+
+ 86%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                      | 6/7 [00:02<00:00,  2.11it/s]
+Image saved as outputs/resolution_dataset50/patch_gan/patch_gan_test/epoch_images/z_axis/factor_2/epoch_8.png
+eval psnr: 10.7657
+
+ 71%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████▋                                            | 5/7 [00:02<00:00,  2.20it/s]
+loss_D_fake: 0.11865
+loss_D_real: 0.10893
+loss_D: 0.11379
+loss_G_GAN: 0.96576
+loss_G_L1: 23.73168
+
+ 86%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▊                      | 6/7 [00:02<00:00,  2.13it/s]
+Image saved as outputs/resolution_dataset50/patch_gan/patch_gan_test/epoch_images/z_axis/factor_2/epoch_9.png
+eval psnr: 10.9706
+model saved
+Traceback (most recent call last):
+  File "/home/cidar/Desktop/refactor2/train_patch_gan.py", line 140, in <module>
+    train(opt,model,train_dataloader,eval_dataloader,wandb = wandb)
+  File "/home/cidar/Desktop/refactor2/train_patch_gan.py", line 76, in train
+    torch.onnx.export(model.net_G,images,"model.onnx")
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/onnx/__init__.py", line 225, in export
+    return utils.export(model, args, f, export_params, verbose, training,
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/onnx/utils.py", line 85, in export
+    _export(model, args, f, export_params, verbose, training, input_names, output_names,
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/onnx/utils.py", line 632, in _export
+    _model_to_graph(model, args, verbose, input_names,
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/onnx/utils.py", line 409, in _model_to_graph
+    graph, params, torch_out = _create_jit_graph(model, args,
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/onnx/utils.py", line 379, in _create_jit_graph
+    graph, torch_out = _trace_and_get_graph_from_model(model, args)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/onnx/utils.py", line 342, in _trace_and_get_graph_from_model
+    torch.jit._get_trace_graph(model, args, strict=False, _force_outplace=False, _return_inputs_states=True)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/jit/_trace.py", line 1148, in _get_trace_graph
+    outs = ONNXTracedModule(f, strict, _force_outplace, return_inputs, _return_inputs_states)(*args, **kwargs)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/jit/_trace.py", line 125, in forward
+    graph, out = torch._C._create_graph_by_tracing(
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/jit/_trace.py", line 116, in wrapper
+    outs.append(self.inner(*trace_inputs))
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/module.py", line 725, in _call_impl
+    result = self._slow_forward(*input, **kwargs)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/module.py", line 709, in _slow_forward
+    result = self.forward(*input, **kwargs)
+  File "/home/cidar/Desktop/refactor2/models/unet.py", line 375, in forward
+    x, before_pooling = module(x)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/module.py", line 725, in _call_impl
+    result = self._slow_forward(*input, **kwargs)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/module.py", line 709, in _slow_forward
+    result = self.forward(*input, **kwargs)
+  File "/home/cidar/Desktop/refactor2/models/unet.py", line 179, in forward
+    y = self.conv1(x)  # convolution 1
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/module.py", line 725, in _call_impl
+    result = self._slow_forward(*input, **kwargs)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/module.py", line 709, in _slow_forward
+    result = self.forward(*input, **kwargs)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/conv.py", line 423, in forward
+    return self._conv_forward(input, self.weight)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/conv.py", line 419, in _conv_forward
+    return F.conv2d(input, weight, self.bias, self.stride,
+RuntimeError: Input type (torch.FloatTensor) and weight type (torch.cuda.FloatTensor) should be the same

@@ -1,0 +1,167 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.12.17
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.9.7
+    start_time: 1653776243
+    t:
+      1:
+      - 1
+      - 41
+      - 55
+      2:
+      - 1
+      - 41
+      - 55
+      3:
+      - 1
+      - 2
+      - 13
+      - 16
+      4: 3.9.7
+      5: 0.12.17
+      8:
+      - 5
+activation:
+  desc: null
+  value: relu
+batch_size:
+  desc: null
+  value: 32
+checkpoints_dir:
+  desc: null
+  value: outputs/resolution_dataset50/patch_gan/patch_gan_test/checkpoints/z_axis/factor_2/
+config:
+  desc: null
+  value: yaml/patch_gan.yaml
+conv_mode:
+  desc: null
+  value: same
+dataset_name:
+  desc: null
+  value: z_axis
+dataset_size:
+  desc: null
+  value: resolution_dataset50
+device:
+  desc: null
+  value: cuda
+dim:
+  desc: null
+  value: 2
+epoch_image_path:
+  desc: null
+  value: resolution_dataset50/z_axis/factor_2/train/lr_f1_160_2_z_46.png
+epoch_images_dir:
+  desc: null
+  value: outputs/resolution_dataset50/patch_gan/patch_gan_test/epoch_images/z_axis/factor_2/
+exp_name:
+  desc: null
+  value: patch_gan_test
+factor:
+  desc: null
+  value: 2
+gan_mode:
+  desc: null
+  value: lsgan
+grad_norm_dir:
+  desc: null
+  value: outputs/resolution_dataset50/patch_gan/patch_gan_test/grad_norm/z_axis/factor_2/
+init:
+  desc: null
+  value: kaiming
+input_images_dir:
+  desc: null
+  value: outputs/resolution_dataset50/patch_gan/patch_gan_test/input_images/z_axis/factor_2/
+lambda_L1:
+  desc: null
+  value: 100
+loss_dir:
+  desc: null
+  value: outputs/resolution_dataset50/patch_gan/patch_gan_test/losses/z_axis/factor_2/
+lr:
+  desc: null
+  value: 0.0001
+lr_D:
+  desc: null
+  value: 0.0001
+lr_G:
+  desc: null
+  value: 0.0001
+model_name:
+  desc: null
+  value: patch_gan
+n_blocks:
+  desc: null
+  value: 4
+n_down:
+  desc: null
+  value: 3
+n_freq:
+  desc: null
+  value: 2
+normalization:
+  desc: null
+  value: batch
+num_epochs:
+  desc: null
+  value: 10
+num_filters:
+  desc: null
+  value: 64
+num_workers:
+  desc: null
+  value: 8
+output_images_dir:
+  desc: null
+  value: outputs/resolution_dataset50/patch_gan/patch_gan_test/output_images/z_axis/factor_2/
+patch:
+  desc: null
+  value: false
+plot_dir:
+  desc: null
+  value: outputs/resolution_dataset50/patch_gan/patch_gan_test/plots/z_axis/factor_2/
+project_name:
+  desc: null
+  value: super_resolution
+seed:
+  desc: null
+  value: 123
+start_filters:
+  desc: null
+  value: 32
+tensorboard:
+  desc: null
+  value: false
+train_batch_size:
+  desc: null
+  value: 32
+train_image_dir:
+  desc: null
+  value: resolution_dataset50/z_axis/factor_2/train
+train_label_dir:
+  desc: null
+  value: resolution_dataset50/z_axis/label/train
+up_mode:
+  desc: null
+  value: transposed
+val_batch_size:
+  desc: null
+  value: 1
+val_image_dir:
+  desc: null
+  value: resolution_dataset50/z_axis/factor_2/val
+val_label_dir:
+  desc: null
+  value: resolution_dataset50/z_axis/label/val
+wandb:
+  desc: null
+  value: true
+weights_file:
+  desc: null
+  value: None

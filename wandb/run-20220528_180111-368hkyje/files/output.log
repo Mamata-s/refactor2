@@ -1,0 +1,108 @@
+  0%|                                                                                                                                                                   | 0/7 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/cidar/Desktop/refactor2/train_patch_gan.py", line 142, in <module>
+    train(opt,model,train_dataloader,eval_dataloader,wandb = wandb)
+  File "/home/cidar/Desktop/refactor2/train_patch_gan.py", line 34, in train
+    images = train_epoch_patch_gan(opt,model,train_dataloader,epoch,epoch_losses)
+  File "/home/cidar/Desktop/refactor2/utils/train_epoch.py", line 135, in train_epoch_patch_gan
+    model.optimize()
+  File "/home/cidar/Desktop/refactor2/models/patch_gan.py", line 117, in optimize
+    self.forward()
+  File "/home/cidar/Desktop/refactor2/models/patch_gan.py", line 95, in forward
+    self.fake_images = self.net_G(self.images)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/home/cidar/Desktop/refactor2/models/unet.py", line 381, in forward
+    x = module(before_pool, x)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/home/cidar/Desktop/refactor2/models/unet.py", line 270, in forward
+    y = self.conv1(merged_layer)  # convolution 1
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/conv.py", line 423, in forward
+    return self._conv_forward(input, self.weight)
+  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/conv.py", line 419, in _conv_forward
+    return F.conv2d(input, weight, self.bias, self.stride,
+RuntimeError: CUDA out of memory. Tried to allocate 180.00 MiB (GPU 0; 23.69 GiB total capacity; 6.24 GiB already allocated; 138.31 MiB free; 6.30 GiB reserved in total by PyTorch)
+Unet(
+  (conv_final): Conv2d(32, 1, kernel_size=(1, 1), stride=(1, 1))
+  (down_blocks): ModuleList(
+    (0): DownBlock(
+      (conv1): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (act1): ReLU()
+      (act2): ReLU()
+      (norm1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (norm2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (1): DownBlock(
+      (conv1): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (act1): ReLU()
+      (act2): ReLU()
+      (norm1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (norm2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (2): DownBlock(
+      (conv1): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+      (act1): ReLU()
+      (act2): ReLU()
+      (norm1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (norm2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (3): DownBlock(
+      (conv1): Conv2d(128, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (act1): ReLU()
+      (act2): ReLU()
+      (norm1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (norm2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (up_blocks): ModuleList(
+    (0): UpBlock(
+      (up): ConvTranspose2d(256, 128, kernel_size=(2, 2), stride=(2, 2))
+      (conv0): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1))
+      (conv1): Conv2d(256, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (act0): ReLU()
+      (act1): ReLU()
+      (act2): ReLU()
+      (norm0): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (norm1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (norm2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (concat): Concatenate()
+    )
+    (1): UpBlock(
+      (up): ConvTranspose2d(128, 64, kernel_size=(2, 2), stride=(2, 2))
+      (conv0): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1))
+      (conv1): Conv2d(128, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (act0): ReLU()
+      (act1): ReLU()
+      (act2): ReLU()
+      (norm0): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (norm1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (norm2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (concat): Concatenate()
+    )
+    (2): UpBlock(
+      (up): ConvTranspose2d(64, 32, kernel_size=(2, 2), stride=(2, 2))
+      (conv0): Conv2d(64, 32, kernel_size=(1, 1), stride=(1, 1))
+      (conv1): Conv2d(64, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (act0): ReLU()
+      (act1): ReLU()
+      (act2): ReLU()
+      (norm0): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (norm1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (norm2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (concat): Concatenate()
+    )
+  )
+)
