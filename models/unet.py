@@ -384,7 +384,157 @@ class Unet(nn.Module):
 
         return x
 
+    def save(self,model,opt,path,optimizer,epoch):
+        torch.save({
+                    'training_type':opt.training_type,
+                    'epoch': epoch,
+                    'n_blocks': opt.n_blocks,
+                    'start_filters': opt.start_filters,
+                    'activation': opt.activation,
+                    'normalization': opt.normalization,
+                    'conv_mode': opt.conv_mode,
+                    'dim': opt.dim,
+                    'up_mode': opt.up_mode,
+                    'init': opt.init,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    }, path) 
+
     # def __repr__(self):
     #     attributes = {attr_key: self.__dict__[attr_key] for attr_key in self.__dict__.keys() if '_' not in attr_key[0] and 'training' not in attr_key}
     #     d = {self.__class__.__name__: attributes}
     #     return f'{d}'
+
+
+
+#unet small
+# https://github.com/nikhilroxtomar/Semantic-Segmentation-Architecture/blob/main/PyTorch/resunet.py  
+
+'''
+Convolutional block:
+It follows two 3*3 convolutional block, each followed by a batch norm and relu activation
+conv->bn->conv->bn->relu
+'''
+
+class conv_block(nn.Module):
+    def __init__(self,in_ch,out_ch):
+        super().__init__()
+
+        self.conv1 = nn.Conv2d(in_ch,out_ch,kernel_size=3,padding=1)
+        self.bn1 = nn.BatchNorm2d(out_ch)
+
+
+        self.conv2 = nn.Conv2d(out_ch,out_ch,kernel_size=3,padding=1)
+        self.bn2 = nn.BatchNorm2d(out_ch)
+
+        self.relu = nn.LeakyReLU(0.1)
+
+    def forward(self,input):
+        x = self.conv1(input)
+        x=self.bn1(x)
+
+        x = self.conv2(x)
+        x=self.bn2(x)
+
+        x=self.relu(x)
+
+        return x
+
+
+'''Encoder block:
+It consists of conv_block followed by max pooling 
+here the no of filters double and height and width reduce by half
+'''
+
+
+class encoder_block(nn.Module):
+    def __init__(self,in_ch,out_ch):
+        super().__init__()
+
+        self.conv = conv_block(in_ch,out_ch)
+        self.pool = nn.Conv2d(out_ch,out_ch,kernel_size=3,stride=2,padding=1)
+
+
+    def forward(self,inputs):
+        x = self.conv(inputs)
+        p = self.pool(x)
+        return x,p
+
+"""
+Decoder block:
+the decoder block begins with a transposed convolution followed by a concatenation with skip connection from the encoder block. Next comes the conv_block.
+Here the number filters decreases by half and height, width doubles
+"""
+
+class decoder_block(nn.Module):
+    def __init__(self,in_ch,out_ch):
+        super().__init__()
+
+        self.up = nn.ConvTranspose2d(in_ch,out_ch,kernel_size=2,stride=2,padding=0)
+        self.conv = conv_block(out_ch+out_ch,out_ch)
+
+    def forward(self,inputs,skip):
+        x=self.up(inputs)
+        x=torch.cat([x,skip],axis=1)
+        x=self.conv(x)
+
+        return x
+
+
+
+class UnetSmall(nn.Module):
+    def __init__(self,in_ch,out_ch):
+        super().__init__()
+
+        '''Encoder'''
+        self.e1 = encoder_block(in_ch,32)
+        self.e2 = encoder_block(32,64)
+        self.e3 = encoder_block(64,128)
+
+        '''Bottleneck'''
+
+        self.b=conv_block(128,512)
+
+
+        '''Decoder'''
+        self.d1 = decoder_block(512,128)
+        self.d2 = decoder_block(128,64)
+        self.d3 = decoder_block(64,32)
+
+
+        '''Reconstruction block'''
+        self.outputs = nn.Conv2d(32,out_ch,kernel_size=1,padding=0)
+
+
+    def forward(self,input):
+        s1,p1 = self.e1(input)
+        s2,p2 = self.e2(p1)
+        s3,p3 = self.e3(p2)
+
+        '''Bottleneck'''
+        b= self.b(p3)
+
+        '''Decoder'''
+        d1=self.d1(b,s3)
+        d2 =self.d2(d1,s2)
+        d3 = self.d3(d2,s1)
+
+
+        '''Reconstruction'''
+        outputs = self.outputs(d3)
+
+        return outputs
+
+    def save(self,model,opt,path,optimizer,epoch):
+        torch.save({
+                    'training_type':opt.training_type,
+                    'epoch': epoch,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    }, path) 
+
+
+
+
+
+

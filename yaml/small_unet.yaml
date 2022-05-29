@@ -1,9 +1,15 @@
 #configuration file
-#this is file for training srdense net with original training type
+#this is file for training srdense net 
 
+#task remaining
+#srgan training
+# eval for models
+#visualization 
+#wb visualize
+# resuming training setup
 
-model_name: 'srdense'
-exp_name: 'srdense_test'
+model_name: 'unet_small'
+exp_name: 'unet_small_exp'  
 training_type: 'original'
 project_name: 'super_resolution'
 wandb: True 
@@ -16,19 +22,13 @@ lr: 0.0001
 n_freq: 100
 train_batch_size: 32
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
-# opt.device: cpu or gpu during training
 factor: 2
 
 
-#srdense
 criterion: mse
 optimizer: adam
-growth_rate: 7
-num_blocks: 5
-num_layers: 5
+
+#unet
+init: 'kaiming'
 weights_file: None
-scale: 4
 patch: False
-
-
-

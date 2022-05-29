@@ -81,6 +81,18 @@ class SRDenseNet(nn.Module):
         x = self.reconstruction(x)
         return x
 
+    def save(self,model,opt,path,optimizer,epoch):
+         torch.save({
+                    'training_type':opt.training_type,
+                    'epoch': epoch,
+                    'growth_rate': opt.growth_rate,
+                    'num_blocks':opt.num_blocks,
+                    'num_layers':opt.num_layers,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    }, path) 
+
+
 class SRDenseNetUpscale(nn.Module):
     def __init__(self, num_channels=1, growth_rate=4, num_blocks=4, num_layers=3):
         super(SRDenseNetUpscale, self).__init__()
@@ -127,3 +139,14 @@ class SRDenseNetUpscale(nn.Module):
         x = self.deconv(x)
         x = self.reconstruction(x)
         return x
+
+    def save(self,model,opt,path,optimizer,epoch):
+         torch.save({
+                    'training_type':opt.training_type,
+                    'epoch': epoch,
+                    'growth_rate': opt.growth_rate,
+                    'num_blocks':opt.num_blocks,
+                    'num_layers':opt.num_layers,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    }, path) 

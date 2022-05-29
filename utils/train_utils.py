@@ -9,8 +9,10 @@ import torch
 import torch.nn as nn
 from dataset.dataset import MRIDataset,MRIDatasetPatch,RdnSampler
 from utils.config import set_val_dir,set_train_dir
-from models.densenet import SRDenseNet,SRDenseNetUpscale
-from models.patch_gan import PatchGAN
+from models.densenet import SRDenseNet
+from models.patch_gan import PatchGAN,init_model
+from models.unet import Unet, UnetSmall
+from models.resunet import ResUNet
 import torch.optim as optim
 
 def load_dataset(opt):
@@ -39,19 +41,31 @@ def load_dataset(opt):
 
 
 def adjust_learning_rate(optimizer, epoch,opt):
-    """Sets the learning rate to the initial LR decayed by 10 after 150 and 225 epochs"""
-    lr = opt.lr * (0.1 ** (epoch // 150)) * (0.1 ** (epoch // 225))
+    """Sets the learning rate to the initial LR decayed by 2 after 150 and 225 epochs"""
+    lr = opt.lr * (0.5 ** (epoch // 150)) * (0.5 ** (epoch // 225))
     opt.lr=lr
     # log to TensorBoard
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
-
+    return lr
 
 def load_model(opt):
     if opt.model_name in ['srdense']:
         model =  SRDenseNet(num_channels=1, growth_rate = opt.growth_rate, num_blocks = opt.num_blocks, num_layers=opt.num_layers).to(opt.device) 
-    elif opt.model_name in ['gan','patch_gan']:
-        model = PatchGAN(opt)
+    elif opt.model_name in ['unet']:
+        model = Unet(in_channels= 1, out_channels= 1, n_blocks=opt.n_blocks, start_filters=opt.start_filters,activation=opt.activation,
+                 normalization=opt.normalization,conv_mode = opt.conv_mode,dim= opt.dim,up_mode=opt.up_mode)
+        model = init_model( model, opt.device,init="norm")
+    elif opt.model_name in ['patch_gan','gan']:
+        model= PatchGAN(opt)
+    elif opt.model_name in ['unet_small']:
+        model = UnetSmall(in_channels= 1,
+                 out_channels= 1)
+    elif opt.model_name in ['resunet']:
+        model = ResUNet(in_channels= 1,
+                 out_channels= 1)
+    else:
+        print(f'Model {opt.model_name} not implemented')
     return model
 
 def get_criterion(opt):

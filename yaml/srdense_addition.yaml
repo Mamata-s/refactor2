@@ -1,22 +1,19 @@
-
-#this is a configuration file for training srdense net for predicting error map(label-input) 
+#this is a configuration file for training srdense net for residual (label-input) and meaasuring error after addition
 
 model_name: 'srdense'
-exp_name: 'srdense_error_map'
-training_type: 'error_map'  #options: error_map,normal,addition
+exp_name: 'srdense_addition'
+training_type: 'addition'  #options: error_map,normal,addition
 project_name: 'super_resolution'
 wandb: True 
 dataset_size: resolution_dataset50
 dataset_name: 'z_axis'
 num_epochs: 20
-num_workers: 8
+num_workers: 800
 seed: 123
-lr: 0.0001
-n_freq: 5
-batch_size: 32
+lr: 0.001
+n_freq: 100
 train_batch_size: 32
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
-# opt.device: cpu or gpu during training
 factor: 2
 
 

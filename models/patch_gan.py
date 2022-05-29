@@ -2,7 +2,8 @@
 import torch
 from torch import nn, optim
 from loss.ganloss import GANLoss
-from models.unet import Unet
+from models.unet import Unet, UnetSmall
+from models.densenet import SRDenseNet
 
 
 class PatchDiscriminator(nn.Module):
@@ -64,24 +65,37 @@ class PatchGAN(nn.Module):
 
         self.device = opt.device
         self.lambda_L1 = opt.lambda_L1
-        
-        if net_G is None:
-            self.net_G = init_model(Unet(in_channels= 1,
-                 out_channels= 1,
-                 n_blocks=opt.n_blocks,
-                 start_filters=opt.start_filters,
-                 activation=opt.activation,
-                 normalization=opt.normalization,
-                 conv_mode = opt.conv_mode,
-                 dim= opt.dim,
-                 up_mode=opt.up_mode), self.device,init=opt.init)
+        self.opt = opt
+        if opt.generator_type:
+            self.generator_type = opt.generator_type
         else:
-            self.net_G = net_G.to(self.device)
+            self.generator_type = 'unet'
+        if net_G is None:
+            self.get_generator()
+        else:
+            self.net_G =net_G    
         self.net_D = init_model(PatchDiscriminator(input_c=1, n_down=opt.n_down, num_filters=opt.num_filters), self.device)
         self.GANcriterion = GANLoss(gan_mode=opt.gan_mode).to(self.device)
         self.L1criterion = nn.L1Loss()
         self.opt_G = optim.Adam(self.net_G.parameters(), lr= opt.lr_G, betas=(beta1, beta2))
         self.opt_D = optim.Adam(self.net_D.parameters(), lr= opt.lr_D, betas=(beta1, beta2))
+
+    def get_generator(self):
+        if self.generator_type=='unet':
+            self.net_G = init_model(Unet(in_channels= 1,
+                 out_channels= 1,
+                 n_blocks= self.opt.n_blocks,
+                 start_filters= self.opt.start_filters,
+                 activation = self.opt.activation,
+                 normalization = self.opt.normalization,
+                 conv_mode = self.opt.conv_mode,
+                 dim= self.opt.dim,
+                 up_mode=self.opt.up_mode), self.device,init=self.opt.init)
+        elif self.generator_type == 'unet_small':
+            self.net_G = init_model(UnetSmall(in_ch= 1,out_ch=1), self.device,init=self.opt.init)
+        elif self.generator_type =="dense":
+            self.net_G = init_model(SRDenseNet(num_channels=1, growth_rate = self.opt.growth_rate, 
+            num_blocks = self.opt.num_blocks, num_layers=self.opt.num_layers), self.device,init=self.opt.init)
 
     def set_requires_grad(self, model, requires_grad=True):
         for p in model.parameters():
@@ -135,3 +149,59 @@ class PatchGAN(nn.Module):
         self.opt_G.zero_grad()
         self.backward_G_l1()
         self.opt_G.step()
+
+    def save(self,model,opt,path,epoch):
+        if opt.generator_type in ['unet']:
+            torch.save({
+                    'epoch': epoch,
+                    'generator_type':opt.generator_type,
+                    'n_blocks': opt.n_blocks,
+                    'start_filters': opt.start_filters,
+                    'activation':opt.activation,
+                    'normalization':opt.normalization,
+                    'model_state_dict': model.state_dict(),
+                    'conv_mode':opt.conv_mode,
+                    'dim':opt.dim,
+                    'up_mode':opt.up_mode,
+                    'init':opt.init,
+                    'gan_mode': opt.gan_mode,
+                    'n_down':opt.n_down,
+                    'num_filers':opt.num_filters,
+                    'g_optimizer_state_dict': model.opt_G.state_dict(),
+                    'd_optimizer_state_dict': model.opt_D.state_dict(),
+                    }, path)
+        elif opt.generator_type in ['unet_small']:
+            torch.save({
+                    'epoch': epoch,
+                    'generator_type':opt.generator_type,
+                    'init':opt.init,
+                    'gan_mode': opt.gan_mode,
+                    'model_state_dict': model.state_dict(),
+                    'g_optimizer_state_dict': model.opt_G.state_dict(),
+                    'd_optimizer_state_dict': model.opt_D.state_dict(),
+                    }, path) 
+        elif opt.generator_type in ['dense']:
+            torch.save({
+                    'epoch': epoch,
+                    'generator_type':opt.generator_type,
+                    'init':opt.init,
+                    'gan_mode': opt.gan_mode,
+                    'growth_rate': opt.growth_rate,
+                    'num_blocks':opt.num_blocks,
+                    'num_layers':opt.num_layers,
+                    'model_state_dict': model.state_dict(),
+                    'g_optimizer_state_dict': model.opt_G.state_dict(),
+                    'd_optimizer_state_dict': model.opt_D.state_dict(),
+                    }, path) 
+        elif opt.generator_type in ['resunet']:
+            torch.save({
+                    'epoch': epoch,
+                    'generator_type':opt.generator_type,
+                    'init':opt.init,
+                    'gan_mode': opt.gan_mode,
+                    'model_state_dict': model.state_dict(),
+                    'g_optimizer_state_dict': model.opt_G.state_dict(),
+                    'd_optimizer_state_dict': model.opt_D.state_dict(),
+                    }, path) 
+        else:
+            print(f"Failed to save the generator type {opt.generator_type}")

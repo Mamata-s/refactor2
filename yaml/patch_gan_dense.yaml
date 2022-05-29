@@ -1,0 +1,42 @@
+#configuration file
+#this is file for training patch_gan with densenet as generator
+
+model_name: 'patch_gan'
+exp_name: 'patch_gan_dense'
+generator_type: 'dense'  #options: unet, unet_small, dense, resunet
+dataset_size: resolution_dataset50
+dataset_name: 'z_axis'
+num_epochs: 500
+num_workers: 8
+seed: 123
+lr: 0.001
+n_freq: 100
+train_batch_size: 32
+val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
+factor: 2
+wandb: True 
+project_name: 'super_resolution'
+
+
+#gan unet
+init: 'kaiming'  #options: norm,xavier,kaiming
+growth_rate: 7
+num_blocks: 5
+num_layers: 5
+scale: 4
+
+
+weights_file: None
+patch: False
+gan_mode: 'lsgan'  # options: vanilla, lsgan
+
+
+#learning rate
+lr_G: 0.0001
+lr_D: 0.0001
+lambda_L1: 100
+
+
+#patch discriminator
+n_down: 3
+num_filters: 64

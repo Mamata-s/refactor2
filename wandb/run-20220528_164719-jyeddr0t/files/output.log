@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "/home/cidar/Desktop/refactor2/train_patch_gan.py", line 136, in <module>
-    wandb.watch(model.net_G,log="all",log_freq=50)
-  File "/home/cidar/anaconda3/envs/resolution_env/lib/python3.9/site-packages/torch/nn/modules/module.py", line 778, in __getattr__
-    raise ModuleAttributeError("'{}' object has no attribute '{}'".format(
-torch.nn.modules.module.ModuleAttributeError: 'DataParallel' object has no attribute 'net_G'

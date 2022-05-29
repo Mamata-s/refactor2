@@ -10,36 +10,6 @@ from utils.logging_metric import update_epoch_losses, update_losses, log_results
 from utils.preprocess import hfen_error
 
 
-# class TrainModel():
-#     def __init__(self,model,opt):
-#         self.model=model
-#         self.opt=opt
-
-#     def train(self):
-#         if self.opt.model_name in ['srdense','unet','residual']:
-#             self.train_srdense()
-
-#     def train_epoch_srdense(self): 
-#         pass
-
-#     def train_srgan(self):
-#         pass
-
-
-
-# def train_and_eval(opt,model,criterion,optimizer,train_dataset,train_dataloader,eval_dataloader,epoch,epoch_losses):
-#     if opt.model_name in ['srdense','unet','residual']:
-#         train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_dataloader,epoch,epoch_losses)
-#         eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen = validate_srdense(opt,model, eval_dataloader,criterion)
-#         return eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen
-
-#     elif opt.model_name in ['gan','patch_gan']:
-#         train_epoch_patch_gan(opt,model,optimizer,train_dataloader,epoch,epoch_losses)
-#         eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen = validate_patch_gan(opt,model, eval_dataloader,criterion)
-#         return eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen
-#     else:
-#         print('the model training not implemented')
-
 
 def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_dataloader,epoch,epoch_losses): 
     with tqdm(total=(len(train_dataset) - len(train_dataset) % opt.batch_size), ncols=80) as t:
@@ -73,15 +43,7 @@ def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_datalo
             if not os.path.exists(opt.checkpoints_dir):
                 os.makedirs(opt.checkpoints_dir)
             path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
-            torch.save({
-                    'training_type':opt.training_type,
-                    'epoch': epoch,
-                    'growth_rate': opt.growth_rate,
-                    'num_blocks':opt.num_blocks,
-                    'num_layers':opt.num_layers,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    }, path)
+            model.save(model,opt,path,optimizer,epoch)
             # torch.save(model.state_dict(), os.path.join(config['outputs_dir'], 'epoch_{}_f_{}.pth'.format(epoch,args.factor)))
     return images
 
@@ -95,8 +57,10 @@ def validate_srdense(opt,model, dataloader,criterion=nn.MSELoss(),addition=False
             image = image.to(opt.device)
             label = label.to(opt.device)
             output = model(image)
+
             if addition:
                 output = output+image
+
             loss += criterion(output,label) 
             l1 += l1_loss(output,label)
             count += len(label)
@@ -151,61 +115,9 @@ def train_epoch_patch_gan(opt,model,train_dl, epoch, epoch_losses):
         if not os.path.exists(opt.checkpoints_dir):
                 os.makedirs(opt.checkpoints_dir)
         path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
-        torch.save({
-                'epoch': epoch,
-                'n_blocks': opt.n_blocks,
-                'start_filters': opt.start_filters,
-                'activation':opt.activation,
-                'normalization':opt.normalization,
-                'model_state_dict': model.state_dict(),
-                'conv_mode':opt.conv_mode,
-                'dim':opt.dim,
-                'up_mode':opt.up_mode,
-                'init':opt.init,
-                'gan_mode': opt.gan_mode,
-                'n_down':opt.n_down,
-                'num_filers':opt.num_filters,
-                'g_optimizer_state_dict': model.opt_G.state_dict(),
-                'd_optimizer_state_dict': model.opt_D.state_dict(),
-                }, path)
+        model.save(model,opt,path,epoch)
         # path = os.path.join(opt.checkpoints_dir, 'full_model_epoch_{}_f_{}.pth'.format(epoch,opt.factor))
         # torch.save(model.state_dict(), path)
     return images
 
 
-def train_epoch_srdense_error_map(opt,model,criterion,optimizer,train_dataset,train_dataloader,epoch,epoch_losses): 
-    with tqdm(total=(len(train_dataset) - len(train_dataset) % opt.batch_size), ncols=80) as t:
-        t.set_description('epoch: {}/{}'.format(epoch, opt.num_epochs - 1))
-
-        for idx, (images, labels) in enumerate(train_dataloader):
-            images = images.to(opt.device)
-            labels = labels.to(opt.device)
-            preds = model(images)
-            label_error_map = labels-images
-
-            loss = criterion(preds, label_error_map)
-
-            # epoch_losses.update(loss.item(), len(images))
-            update_epoch_losses(epoch_losses, count=len(images),values=[loss.item()])
-            
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            t.set_postfix(loss='{:.6f}'.format(epoch_losses['train_loss'].avg))
-            t.update(len(images))
-
-        if epoch % opt.n_freq==0:
-            if not os.path.exists(opt.checkpoints_dir):
-                os.makedirs(opt.checkpoints_dir)
-            path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
-            torch.save({
-                    'epoch': epoch,
-                    'growth_rate': opt.growth_rate,
-                    'num_blocks':opt.num_blocks,
-                    'num_layers':opt.num_layers,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    }, path)
-            # torch.save(model.state_dict(), os.path.join(config['outputs_dir'], 'epoch_{}_f_{}.pth'.format(epoch,args.factor)))
-    return images
