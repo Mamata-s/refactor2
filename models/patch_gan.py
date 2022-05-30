@@ -4,6 +4,7 @@ from torch import nn, optim
 from loss.ganloss import GANLoss
 from models.unet import Unet, UnetSmall
 from models.densenet import SRDenseNet
+from models.resunet import ResUNet
 
 
 class PatchDiscriminator(nn.Module):
@@ -96,6 +97,12 @@ class PatchGAN(nn.Module):
         elif self.generator_type =="dense":
             self.net_G = init_model(SRDenseNet(num_channels=1, growth_rate = self.opt.growth_rate, 
             num_blocks = self.opt.num_blocks, num_layers=self.opt.num_layers), self.device,init=self.opt.init)
+        elif self.generator_type == 'resunet':
+            self.net_G = init_model(ResUNet(in_ch= 1,
+                    out_ch= 1),self.opt.device,init=self.opt.init)
+        else:
+            print(f'Model {self.opt.generator_type} not implemented')
+
 
     def set_requires_grad(self, model, requires_grad=True):
         for p in model.parameters():

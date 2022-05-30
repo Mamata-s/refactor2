@@ -12,7 +12,7 @@ from utils.preprocess import hfen_error
 
 
 def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_dataloader,epoch,epoch_losses): 
-    with tqdm(total=(len(train_dataset) - len(train_dataset) % opt.batch_size), ncols=80) as t:
+    with tqdm(total=(len(train_dataset) - len(train_dataset) % opt.train_batch_size), ncols=80) as t:
         t.set_description('epoch: {}/{}'.format(epoch, opt.num_epochs - 1))
 
         for idx, (images, labels) in enumerate(train_dataloader):
@@ -43,9 +43,9 @@ def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_datalo
             if not os.path.exists(opt.checkpoints_dir):
                 os.makedirs(opt.checkpoints_dir)
             path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
-            model.save(model,opt,path,optimizer,epoch)
+            model.module.save(model,opt,path,optimizer,epoch)
             # torch.save(model.state_dict(), os.path.join(config['outputs_dir'], 'epoch_{}_f_{}.pth'.format(epoch,args.factor)))
-    return images
+    return images,labels,preds
 
 
 def validate_srdense(opt,model, dataloader,criterion=nn.MSELoss(),addition=False):
@@ -107,7 +107,7 @@ def train_epoch_patch_gan(opt,model,train_dl, epoch, epoch_losses):
     for images,labels in tqdm(train_dl):
         model.setup_input(images,labels) 
         model.optimize()
-        
+
         update_losses(model, epoch_losses, count=images.size(0)) # not implemented   
     log_results(epoch_losses) # function to print out the losses
         
@@ -118,6 +118,8 @@ def train_epoch_patch_gan(opt,model,train_dl, epoch, epoch_losses):
         model.save(model,opt,path,epoch)
         # path = os.path.join(opt.checkpoints_dir, 'full_model_epoch_{}_f_{}.pth'.format(epoch,opt.factor))
         # torch.save(model.state_dict(), path)
-    return images
+    with torch.no_grad():
+        preds = model.net_G(images.to(opt.device)).to(opt.device)
+    return images, preds, labels
 
 

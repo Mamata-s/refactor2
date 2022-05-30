@@ -2,10 +2,9 @@ import pickle
 import os
 import glob
 import torch
-import PIL
 from PIL import Image
 import numpy as np 
-
+import wandb
 
 
 def unpickle(file):
@@ -131,3 +130,48 @@ def load_model(checkpoint,device,model=None):
         )
     )
     return model
+
+
+def preprocess(image_tensor):
+    image_tensor = image_tensor.squeeze().detach().to("cpu").float().numpy()
+    image_tensor = image_tensor*255
+    image_tensor = image_tensor.clip(0,255)
+    image_tensor = image_tensor.astype('uint8')
+    # image_tensor = Image.fromarray(image_tensor)
+    return image_tensor
+
+
+
+def log_output_images(images, predicted, labels):
+    images = preprocess(images[0])
+    predicted = preprocess(predicted[0])
+    labels = preprocess(labels[0])
+    "Log a wandb.Table with (img, pred, label)"
+    # 🐝 Create a wandb Table to log images, labels and predictions to
+    table = wandb.Table(columns=["image", "pred", "label"])
+    # for img, pred, targ in zip(images, predicted, labels):
+    # table.add_data(images, predicted, labels)
+    table.add_data(wandb.Image(images),wandb.Image(predicted),wandb.Image(labels))
+    wandb.log({"outputs_table":table}, commit=False)
+
+
+class LogOutputs():
+    def __init__(self):
+        self.epoch_list =[]
+        self.images_list =[]
+        self.labels_list = []
+        self.predictions_list=[]
+
+    def append_list(self,epoch,images,labels,predictions):
+        print('append epoch No ::::::::::::::::::::::::::::::::::::',epoch)
+        self.epoch_list.append(epoch)
+        self.images_list.append(preprocess(images[0]))
+        self.labels_list.append(preprocess(labels[0]))
+        self.predictions_list.append(preprocess(predictions[0]))
+
+    def log_images(self,columns=["epoch","image", "pred", "label"],wandb=None):
+        print("saving images")
+        table = wandb.Table(columns=columns)
+        for epoch,img, pred, targ in zip(self.epoch_list,self.images_list,self.predictions_list,self.labels_list):
+            table.add_data(epoch, wandb.Image(img),wandb.Image( pred),wandb.Image(targ))
+        wandb.log({"outputs_table":table}, commit=False)

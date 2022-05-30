@@ -15,14 +15,16 @@ project_name: 'super_resolution'
 wandb: True 
 dataset_size: resolution_dataset50
 dataset_name: 'z_axis'
-num_epochs: 800
+num_epochs: 50
 num_workers: 8
 seed: 123
 lr: 0.0001
-n_freq: 100
+n_freq: 10
 train_batch_size: 32
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 factor: 2
+
+init: 'kaiming'  #options: norm,xavier,kaiming
 
 
 criterion: mse

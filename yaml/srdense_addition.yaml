@@ -16,6 +16,8 @@ train_batch_size: 32
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 factor: 2
 
+init: 'kaiming'  #options: norm,xavier,kaiming
+
 
 #srdense
 criterion: mse
