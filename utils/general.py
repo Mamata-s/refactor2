@@ -163,14 +163,12 @@ class LogOutputs():
         self.predictions_list=[]
 
     def append_list(self,epoch,images,labels,predictions):
-        print('append epoch No ::::::::::::::::::::::::::::::::::::',epoch)
         self.epoch_list.append(epoch)
         self.images_list.append(preprocess(images[0]))
         self.labels_list.append(preprocess(labels[0]))
         self.predictions_list.append(preprocess(predictions[0]))
 
     def log_images(self,columns=["epoch","image", "pred", "label"],wandb=None):
-        print("saving images")
         table = wandb.Table(columns=columns)
         for epoch,img, pred, targ in zip(self.epoch_list,self.images_list,self.predictions_list,self.labels_list):
             table.add_data(epoch, wandb.Image(img),wandb.Image( pred),wandb.Image(targ))
