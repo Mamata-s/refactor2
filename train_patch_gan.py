@@ -16,7 +16,7 @@ from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir
 import os
 import wandb
 
-
+os.environ["CUDA_VISIBLE_DEVICES"]='0,1' 
 def train(opt,model,train_dataloader,eval_dataloader,wandb=None):
     if opt.wandb:
         log_table_output = LogOutputs()

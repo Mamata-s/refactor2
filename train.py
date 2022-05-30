@@ -11,10 +11,11 @@ from utils.logging_metric import LogMetric,create_loss_meters_srdense
 from utils.train_utils import adjust_learning_rate
 from utils.train_epoch import train_epoch_srdense,validate_srdense
 from utils.preprocess import apply_model
-from utils.general import LogTable, save_configuration,log_output_images,LogOutputs
+from utils.general import save_configuration,LogOutputs
 from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir
 import os
 import wandb
+os.environ["CUDA_VISIBLE_DEVICES"]='0,1'
 
 def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb=None):
 
@@ -91,7 +92,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/srdense.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/resunet.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 

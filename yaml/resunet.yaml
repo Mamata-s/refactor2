@@ -15,7 +15,7 @@ project_name: 'super_resolution'
 wandb: True 
 dataset_size: resolution_dataset50
 dataset_name: 'z_axis'
-num_epochs: 50
+num_epochs: 510
 num_workers: 8
 seed: 123
 lr: 0.0001
