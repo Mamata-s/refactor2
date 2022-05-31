@@ -28,7 +28,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
     
     for epoch in range(opt.num_epochs):
         '''reduce learning rate by factor 0.1 on every 150 or 225 epoch'''
-        opt.lr = adjust_learning_rate(optimizer, epoch,opt)
+        opt.lr = adjust_learning_rate(optimizer, epoch,opt.lr)
 
         '''setting model in train mode'''
         model.train()

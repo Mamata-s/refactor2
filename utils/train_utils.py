@@ -45,12 +45,9 @@ def load_dataset(opt):
 
 
 '''reduce learning rate of optimizer by half on every  150 and 225 epochs'''
-def adjust_learning_rate(optimizer, epoch,opt):
+def adjust_learning_rate(optimizer, epoch,lr):
     if epoch % 150 == 0 or epoch % 250==0:
-        lr = opt.lr * 0.5
-    else:
-        lr=opt.lr
-    opt.lr=lr
+        lr = lr * 0.5
     # log to TensorBoard
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr

@@ -24,8 +24,8 @@ def train(opt,model,train_dataloader,eval_dataloader,wandb=None):
     best_epoch = 0
     best_psnr = 0.0
     for epoch in range(opt.num_epochs):
-        opt.lr_G = adjust_learning_rate(model.opt_G, epoch,opt)
-        opt.lr_D= adjust_learning_rate(model.opt_D, epoch,opt)
+        opt.lr_G = adjust_learning_rate(model.opt_G, epoch,opt.lr_G)
+        opt.lr_D= adjust_learning_rate(model.opt_D, epoch,opt.lr_D)
     
         '''setting model in train mode'''
         model.train()
@@ -92,7 +92,7 @@ def train(opt,model,train_dataloader,eval_dataloader,wandb=None):
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/patch_gan_dense.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/patch_gan_reunet.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 
