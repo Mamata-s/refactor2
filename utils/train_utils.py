@@ -7,7 +7,7 @@ from tensorboard_logger import configure, log_value
 import torch
 # from utils.preprocess import 
 import torch.nn as nn
-from dataset.dataset import MRIDataset,MRIDatasetPatch,RdnSampler
+from dataset.dataset_cv import MRIDataset,MRIDatasetPatch,RdnSampler
 from utils.config import set_val_dir,set_train_dir
 from models.densenet import SRDenseNet
 from models.patch_gan import PatchGAN,init_model

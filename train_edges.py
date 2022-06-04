@@ -9,13 +9,31 @@ import torch.nn as nn
 import copy
 from utils.logging_metric import LogMetric,create_loss_meters_srdense
 from utils.train_utils import adjust_learning_rate
-from utils.train_epoch import train_epoch_srdense,validate_srdense
-from utils.preprocess import apply_model,apply_model_using_cv
+from utils.train_epoch import train_epoch_edges,  validate_edges
+from utils.preprocess import apply_model_edges, apply_model_using_cv
 from utils.general import save_configuration,LogOutputs
-from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir
+from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir,set_train_dir,set_val_dir
+from dataset.dataset_cv import MRIDatasetEdges,RdnSampler
 import os
 import wandb
 os.environ["CUDA_VISIBLE_DEVICES"]='0,1'
+
+
+def load_dataset_edges(opt):
+    set_val_dir(opt)  #setting the training datasset dir
+    set_train_dir(opt)  #setting the validation set dir
+    train_datasets = MRIDatasetEdges(opt.train_image_dir, opt.train_label_dir)
+    val_datasets = MRIDatasetEdges(opt.val_image_dir, opt.val_label_dir)
+
+    sampler = RdnSampler(train_datasets,opt.train_batch_size,True,classes=train_datasets.classes())
+    val_sampler = RdnSampler(val_datasets,opt.val_batch_size,True,classes=train_datasets.classes())
+
+    train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,sampler = sampler,shuffle=False,
+        num_workers=1,pin_memory=False,drop_last=False)
+    eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size,sampler = val_sampler,shuffle=False,
+        num_workers=1,pin_memory=False,drop_last=False)
+    return train_dataloader,eval_dataloader,train_datasets,val_datasets
+
 
 def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb=None):
 
@@ -36,10 +54,10 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
         '''train one epoch and evaluate the model'''
     
         epoch_losses = create_loss_meters_srdense()  #create a dictionary
-        images,labels,preds = train_epoch_srdense(opt,model,criterion,optimizer,train_datasets,train_dataloader,epoch,epoch_losses)
-        eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen = validate_srdense(opt,model, eval_dataloader,criterion,addition=opt.addition)
+        images,labels,preds = train_epoch_edges(opt,model,criterion,optimizer,train_datasets,train_dataloader,epoch,epoch_losses,loss_type=opt.loss_type)
+        eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen = validate_edges(opt,model, eval_dataloader,criterion)
         
-        apply_model_using_cv(model,epoch,opt,addition= opt.addition)
+        apply_model_edges(model,epoch,opt)
 
         if opt.wandb:
             wandb.log({"val/val_loss" : eval_loss,
@@ -92,7 +110,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/small_unet.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/srdense_edges.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 
@@ -125,7 +143,7 @@ if __name__ == "__main__":
     if check: opt.edges_training=False
 
     '''load dataset (loading dataset based on dataset name and factor on arguments)'''
-    train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset(opt)
+    train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset_edges(opt)
 
 
     '''get the epoch image path to save the image output of every epoch for given single image'''

@@ -9,8 +9,8 @@
 # resuming training setup
 
 model_name: 'resunet'
-exp_name: 'resunet_exp_norm_kaiming'
-# exp_name: 'resunet_exp_norm_init'
+# exp_name: 'resunet_exp_kaiming_init'
+exp_name: 'resunet_exp_norm_init'
 training_type: 'original'
 project_name: 'super_resolution'
 wandb: True 
@@ -25,8 +25,8 @@ train_batch_size: 32
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 factor: 2
 
-init: 'kaiming'  #options: norm,xavier,kaiming
-# init: 'norm'
+# init: 'kaiming'  #options: norm,xavier,kaiming
+init: 'norm'
 
 
 criterion: mse

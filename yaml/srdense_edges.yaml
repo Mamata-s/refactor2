@@ -3,9 +3,11 @@
 
 
 model_name: 'srdense'
-exp_name: 'srdense_norm_init'
+exp_name: 'srdense_edge_training'
 # exp_name: 'srdense_kaiming_init'
 training_type: 'original'
+loss_type: 'original'  #options addition, original:
+ #for addition mse is calculate after adding edges and loss calculated between (image and label image) else loss cal between edges
 project_name: 'super_resolution'
 wandb: True 
 dataset_size: resolution_dataset50
