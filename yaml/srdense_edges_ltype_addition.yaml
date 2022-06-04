@@ -3,7 +3,7 @@
 
 
 model_name: 'srdense'
-exp_name: 'srdense_edge_training'
+exp_name: 'srdense_edge_ltype_addition'
 # exp_name: 'srdense_kaiming_init'
 training_type: 'original'
 loss_type: 'addition'  #options addition, original:
