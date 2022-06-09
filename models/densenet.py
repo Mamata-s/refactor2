@@ -6,20 +6,20 @@ class ConvLayer(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size):
         super(ConvLayer, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2)
-        self.relu = nn.ReLU(inplace=True)
+        self.leaky_relu = nn.LeakyReLU(0.1)
 
     def forward(self, x):
-        return self.relu(self.conv(x))
+        return self.leaky_relu(self.conv(x))
 
 
 class DenseLayer(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size):
         super(DenseLayer, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2)
-        self.relu = nn.ReLU(inplace=True)
+        self.leaky_relu = nn.LeakyReLU(0.1)
 
     def forward(self, x):
-        return torch.cat([x, self.relu(self.conv(x))], 1)
+        return torch.cat([x, self.leaky_relu(self.conv(x))], 1)
 
 
 class DenseBlock(nn.Module):
@@ -50,19 +50,20 @@ class SRDenseNet(nn.Module):
         # bottleneck layer
         self.bottleneck = nn.Sequential(
             nn.Conv2d(growth_rate * num_layers + growth_rate * num_layers * num_blocks, 256, kernel_size=1),
-            nn.ReLU(inplace=True)
+            nn.LeakyReLU(0.1)
         )
 
         # deconvolution layers
         self.deconv = nn.Sequential(
             nn.ConvTranspose2d(256, 256, kernel_size=3, stride=2, padding=3 // 2, output_padding=1),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(0.1),
             nn.ConvTranspose2d(256, 256, kernel_size=3, stride=2, padding=3 // 2, output_padding=1),
-            nn.ReLU(inplace=True)
+            nn.LeakyReLU(0.1)
         )
 
         # reconstruction layer
         self.reconstruction = nn.Conv2d(256, num_channels, kernel_size=3, padding=3 // 2)
+        self.tanh = nn.Tanh()
 
         self._initialize_weights()
 
@@ -78,7 +79,7 @@ class SRDenseNet(nn.Module):
         x = self.dense_blocks(x)
         x = self.bottleneck(x)
         # x = self.deconv(x)
-        x = self.reconstruction(x)
+        x = self.tanh(self.reconstruction(x))
         return x
 
     def save(self,model,opt,path,optimizer,epoch):
@@ -109,19 +110,20 @@ class SRDenseNetUpscale(nn.Module):
         # bottleneck layer
         self.bottleneck = nn.Sequential(
             nn.Conv2d(growth_rate * num_layers + growth_rate * num_layers * num_blocks, 256, kernel_size=1),
-            nn.ReLU(inplace=True)
+            nn.LeakyReLU(0.1)
         )
 
         # deconvolution layers
         self.deconv = nn.Sequential(
             nn.ConvTranspose2d(256, 256, kernel_size=3, stride=2, padding=3 // 2, output_padding=1),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(0.1),
             # nn.ConvTranspose2d(256, 256, kernel_size=3, stride=2, padding=3 // 2, output_padding=1),
-            # nn.ReLU(inplace=True)
+            # nn.LeakyReLU(0.1)
         )
 
         # reconstruction layer
         self.reconstruction = nn.Conv2d(256, num_channels, kernel_size=3, padding=3 // 2)
+        self.tanh = nn.Tanh()
 
         self._initialize_weights()
 
@@ -137,7 +139,7 @@ class SRDenseNetUpscale(nn.Module):
         x = self.dense_blocks(x)
         x = self.bottleneck(x)
         x = self.deconv(x)
-        x = self.reconstruction(x)
+        x = self.tanh(self.reconstruction(x))
         return x
 
     def save(self,model,opt,path,optimizer,epoch):

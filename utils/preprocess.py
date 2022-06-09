@@ -119,7 +119,6 @@ def apply_model_edges(model,epoch,opt):
     image = cv2.imread(opt.epoch_image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-
     edges = cv2.Canny(image = image, threshold1=1, threshold2=20)
 
     image = image.astype(np.float32) / 255.
@@ -150,6 +149,8 @@ def apply_model_edges(model,epoch,opt):
     cv2.imwrite(path, image_numpy)
     print("Image saved as {}".format(path))
     return True
+
+
 
 
 

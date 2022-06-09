@@ -78,6 +78,7 @@ class ResUNet(nn.Module):
         '''Output'''
         self.output = nn.Conv2d(32,out_ch,kernel_size=1,padding=0)
         self.leakyrelu =nn.LeakyReLU(0.1)
+        self.tanh = nn.Tanh()
 
 
     def forward(self,input):
@@ -103,7 +104,7 @@ class ResUNet(nn.Module):
 
         '''Output'''
         output = self.output(d3)
-        output = self.leakyrelu(output)
+        output = self.tanh(output)
 
         return output
 

@@ -35,6 +35,21 @@ def load_dataset_edges(opt):
     return train_dataloader,eval_dataloader,train_datasets,val_datasets
 
 
+def load_eval_dataset_edges(opt):
+    set_val_dir(opt)  #setting the training datasset dir
+    set_train_dir(opt)  #setting the validation set dir
+    train_datasets = MRIDatasetEdges(opt.train_image_dir, opt.train_label_dir)
+    val_datasets = MRIDatasetEdges(opt.val_image_dir, opt.val_label_dir)
+
+    sampler = RdnSampler(train_datasets,opt.train_batch_size,True,classes=train_datasets.classes())
+    val_sampler = RdnSampler(val_datasets,opt.val_batch_size,True,classes=train_datasets.classes())
+
+    train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,sampler = sampler,shuffle=False,
+        num_workers=1,pin_memory=False,drop_last=False)
+    eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size,sampler = val_sampler,shuffle=False,
+        num_workers=1,pin_memory=False,drop_last=False)
+    return train_dataloader,eval_dataloader,train_datasets,val_datasets
+
 def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb=None):
 
     if opt.wandb:

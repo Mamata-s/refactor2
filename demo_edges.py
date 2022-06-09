@@ -144,9 +144,9 @@ fig.add_subplot(1, cols, 5)
 plt.title('predicted edges',fontsize=fnsize)
 plt.imshow(pred_edges,cmap='gray')
 
-fig.add_subplot(1, cols, 6)
-plt.title('Input edges',fontsize=fnsize)
-plt.imshow(lr_edges,cmap='gray')
+# fig.add_subplot(1, cols, 6)
+# plt.title('Input edges',fontsize=fnsize)
+# plt.imshow(lr_edges,cmap='gray')
 
 # if not os.path.exists(opt.save_dir):
 #     os.makedirs(opt.save_dir)
