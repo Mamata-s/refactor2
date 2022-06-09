@@ -12,11 +12,11 @@ project_name: 'super_resolution'
 wandb: True 
 dataset_size: resolution_dataset50
 dataset_name: 'z_axis'
-num_epochs: 55
+num_epochs: 1505
 num_workers: 8
 seed: 123
 lr: 0.001
-n_freq: 10 # model checkpoint saving frequency
+n_freq: 100 # model checkpoint saving frequency
 train_batch_size: 32
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 # opt.device: cpu or gpu during training

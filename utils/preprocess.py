@@ -165,7 +165,7 @@ def apply_model_using_cv(model,epoch,opt,addition=False):
     output = model(image_tensor)
 
     if addition:
-        output = output+image_tensor
+        output = output.to(opt.device)+image_tensor.to(opt.device)
         output = min_max_normalize(output)
     if not os.path.exists(opt.epoch_images_dir):
         os.makedirs(opt.epoch_images_dir)

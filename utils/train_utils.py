@@ -43,6 +43,21 @@ def load_dataset(opt):
     return train_dataloader,eval_dataloader,train_datasets,val_datasets
 
 
+def load_val_dataset(opt):
+    val_image_dir,val_label_dir = set_val_dir(dataset_name=opt.dataset_name,factor=opt.factor,dataset_size=opt.dataset_size)  #setting the training datasset dir
+    print(val_image_dir,val_label_dir)
+    if opt.patch:
+        val_datasets = MRIDatasetPatch(val_image_dir, val_label_dir)
+        eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size, shuffle=True,
+            num_workers=1,pin_memory=False,drop_last=False)
+    else:
+        val_datasets = MRIDataset(val_image_dir, val_label_dir)
+        val_sampler = RdnSampler(val_datasets,opt.val_batch_size,True,classes=val_datasets.classes())
+        eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size,sampler = val_sampler,shuffle=False,
+            num_workers=1,pin_memory=False,drop_last=False)
+    return eval_dataloader,val_datasets
+
+
 
 '''reduce learning rate of optimizer by half on every  150 and 225 epochs'''
 def adjust_learning_rate(optimizer, epoch,lr):
@@ -77,8 +92,6 @@ def load_model(opt):
     return model
 
 
-
-
 '''get the optimizer based on opt.criterion value'''
 def get_criterion(opt):
     if opt.criterion in ['mse']:
@@ -96,6 +109,9 @@ def get_optimizer(opt,model):
     if opt.optimizer in ['adam']:
         optimizer = optim.Adam(model.parameters(), lr=opt.lr)
         return optimizer
+    elif opt.optimizer in ['sgd']:
+        optimizer = optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
+        return optimizer
     else:
-        print('optimizer not found')
+        print(f'optimizer type {opt.optimizer} not found')
         return None

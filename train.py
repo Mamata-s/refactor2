@@ -92,7 +92,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/small_unet.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/srdense_error_map.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 
