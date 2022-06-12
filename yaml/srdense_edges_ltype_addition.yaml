@@ -20,7 +20,7 @@ n_freq: 100 # model checkpoint saving frequency
 train_batch_size: 32
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 # opt.device: cpu or gpu during training
-factor: 2
+factor: 4
 init: 'norm' 
 # init: 'kaiming'  #options: norm,xavier,kaiming
 

@@ -3,7 +3,7 @@
 
 
 model_name: 'srdense'
-exp_name: 'srdense_edge_training'
+exp_name: 'srdense_edge_training_debug'
 # exp_name: 'srdense_kaiming_init'
 training_type: 'original'
 loss_type: 'original'  #options addition, original:
@@ -12,11 +12,11 @@ project_name: 'super_resolution'
 wandb: True 
 dataset_size: resolution_dataset50
 dataset_name: 'z_axis'
-num_epochs: 1505
+num_epochs: 11
 num_workers: 8
 seed: 123
 lr: 0.001
-n_freq: 100 # model checkpoint saving frequency
+n_freq: 2 # model checkpoint saving frequency
 train_batch_size: 32
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 # opt.device: cpu or gpu during training
@@ -27,6 +27,8 @@ init: 'norm'
 #srdense
 criterion: mse
 optimizer: adam
+# momentum: 
+# weight_decay:
 growth_rate: 7
 num_blocks: 5
 num_layers: 5
@@ -34,5 +36,5 @@ weights_file: None
 scale: 4
 patch: False
 
-
+note: 'this is trained after making correction of last layer as tanh instead of conv and replacing relu with leaky_relu with negative slope of 0.1'
 

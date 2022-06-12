@@ -206,7 +206,6 @@ class MRIDatasetEdges(Dataset):
         image = image2tensor(image, range_norm=False, half=False)
         label = image2tensor(label, range_norm=False, half=False)
         lr_edges = image2tensor(lr_edges, range_norm=False, half=False)
-        hr_edges = image2tensor(hr_edges, range_norm=False, half=False)
 
         if self.transform is not None:
             image = self.transform(image)
@@ -217,5 +216,5 @@ class MRIDatasetEdges(Dataset):
         # image= torch.unsqueeze(image.float(),0)
         # label = torch.unsqueeze(label.float(),0)
     
-        return image,label,lr_edges,hr_edges
+        return image,label,lr_edges
 

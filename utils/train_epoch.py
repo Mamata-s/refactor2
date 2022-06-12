@@ -15,19 +15,18 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
     with tqdm(total=(len(train_dataset) - len(train_dataset) % opt.train_batch_size), ncols=80) as t:
         t.set_description('epoch: {}/{}'.format(epoch, opt.num_epochs - 1))
 
-        for idx, (images, labels,edges_lr,edges_hr) in enumerate(train_dataloader):
+        for idx, (images, labels,edges_lr) in enumerate(train_dataloader):
             images = images.to(opt.device)
             labels = labels.to(opt.device)
             edges_lr = edges_lr.to(opt.device)
-            edges_hr = edges_hr.to(opt.device)
-
+            label_error_map = labels-images
             preds = model(edges_lr)
 
             if loss_type in ['addition']:
                 outs = preds+images
                 loss = criterion(outs, labels)
             else:
-                loss = criterion(preds, edges_hr)
+                loss = criterion(preds, label_error_map)
 
             # epoch_losses.update(loss.item(), len(images))
             update_epoch_losses(epoch_losses, count=len(images),values=[loss.item()])
@@ -45,7 +44,14 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
             path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
             model.module.save(model,opt,path,optimizer,epoch)
             # torch.save(model.state_dict(), os.path.join(config['outputs_dir'], 'epoch_{}_f_{}.pth'.format(epoch,args.factor)))
-    return images,labels,preds+images
+    return {'epoch':epoch,
+            'hr': labels,
+            'final_output':images+preds,
+            'lr':images,
+            'label_edges':label_error_map,
+            'pred_edges': preds,
+            'input_edges':edges_lr
+    }
 
 
 def validate_edges(opt,model, dataloader,criterion=nn.MSELoss()):
@@ -53,11 +59,11 @@ def validate_edges(opt,model, dataloader,criterion=nn.MSELoss()):
     l1_loss = nn.L1Loss()
     count,psnr,ssim,loss,l1,hfen = 0,0,0,0,0,0
     with torch.no_grad():
-        for image,label,edges_lr,edges_hr in dataloader:  #batch size is always 1 to calculate psnr and ssim
+        for image,label,edges_lr in dataloader:  #batch size is always 1 to calculate psnr and ssim
             image = image.to(opt.device)
             label = label.to(opt.device)
             edges_lr = edges_lr.to(opt.device)
-            edges_hr = edges_hr.to(opt.device)
+            label_edges = label-image
             output = model(edges_lr)
 
             output = output+image

@@ -132,9 +132,16 @@ def load_model(checkpoint,device,model=None):
     return model
 
 
-def preprocess(image_tensor):
+
+def normalize_array(arr):
+    deno = arr.max().item()-arr.min().item()
+    return (arr-arr.min().item())/deno
+
+def preprocess(image_tensor,normalize=False):
     image_tensor = image_tensor.squeeze().detach().to("cpu").float().numpy()
-    image_tensor = image_tensor*255
+    if normalize:
+        image_tensor=normalize_array(image_tensor)
+    image_tensor = image_tensor*255.
     image_tensor = image_tensor.clip(0,255)
     image_tensor = image_tensor.astype('uint8')
     # image_tensor = Image.fromarray(image_tensor)
@@ -172,4 +179,43 @@ class LogOutputs():
         table = wandb.Table(columns=columns)
         for epoch,img, pred, targ in zip(self.epoch_list,self.images_list,self.predictions_list,self.labels_list):
             table.add_data(epoch, wandb.Image(img),wandb.Image( pred),wandb.Image(targ))
+        wandb.log({"outputs_table":table}, commit=False)
+
+
+class LogEdgesOutputs():
+    def __init__(self):
+        self.epoch_list =[]
+        self.hr_list =[]
+        self.final_output_list = []
+
+        self.lr_list=[]
+        self.label_edges_list=[]
+        self.pred_edges_list = []
+        self.input_edges_list = []
+
+    def append_list(self,epoch,hr,final_output,lr,label_edges,pred_edges,input_edges):
+    # def append_list(self,epoch,hr,final_output,lr,label_edges):
+        print('Images appended')
+        self.epoch_list.append(epoch)
+        self.hr_list.append(preprocess(hr[0]))
+        self.final_output_list.append(preprocess(final_output[0]))
+
+        self.lr_list.append(preprocess(lr[0]))
+        self.label_edges_list.append(preprocess(label_edges[0],normalize=True))
+        self.pred_edges_list.append(preprocess(pred_edges[0],normalize=True))
+        self.input_edges_list.append(preprocess(input_edges[0]))
+
+    def log_images(self,columns=["epoch","hr","final output", "lr", "label edges","pred edges","input edges"],wandb=None):
+        columns=["epoch","hr","final output", "lr", "label edges","pred edges","input edges"]
+        table = wandb.Table(columns=columns)
+        for epoch,hr,final_output,lr,label_edges,pred_edges,input_edges in zip(self.epoch_list,self.hr_list,self.final_output_list,self.lr_list,self.label_edges_list,self.pred_edges_list,self.input_edges_list):
+        # for epoch,hr,final_output,lr in zip(self.epoch_list,self.hr_list,self.final_output_list,self.lr_list,self.label_edges_list):
+            table.add_data(epoch,
+             wandb.Image(hr),
+             wandb.Image(final_output),
+             wandb.Image(lr),
+             wandb.Image(label_edges),
+             wandb.Image(pred_edges),
+             wandb.Image(input_edges),
+             )
         wandb.log({"outputs_table":table}, commit=False)

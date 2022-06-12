@@ -11,7 +11,7 @@ from utils.logging_metric import LogMetric,create_loss_meters_srdense
 from utils.train_utils import adjust_learning_rate
 from utils.train_epoch import train_epoch_edges,  validate_edges
 from utils.preprocess import apply_model_edges, apply_model_using_cv
-from utils.general import save_configuration,LogOutputs
+from utils.general import save_configuration,LogEdgesOutputs
 from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir,set_train_dir,set_val_dir
 from dataset.dataset_cv import MRIDatasetEdges,RdnSampler
 import os
@@ -53,7 +53,7 @@ def load_eval_dataset_edges(opt):
 def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb=None):
 
     if opt.wandb:
-        log_table_output = LogOutputs()
+        log_table_output = LogEdgesOutputs()
 
     best_weights = copy.deepcopy(model.state_dict())
     best_epoch = 0
@@ -69,9 +69,9 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
         '''train one epoch and evaluate the model'''
     
         epoch_losses = create_loss_meters_srdense()  #create a dictionary
-        images,labels,preds = train_epoch_edges(opt,model,criterion,optimizer,train_datasets,train_dataloader,epoch,epoch_losses,loss_type=opt.loss_type)
+        output_dict = train_epoch_edges(opt,model,criterion,optimizer,train_datasets,train_dataloader,epoch,epoch_losses,loss_type=opt.loss_type)
         eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen = validate_edges(opt,model, eval_dataloader,criterion)
-        
+
         apply_model_edges(model,epoch,opt)
 
         if opt.wandb:
@@ -80,6 +80,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
             "val/val_psnr": eval_psnr,
             "val/val_ssim":eval_ssim,
             "val/val_hfen":eval_hfen,
+            "epoch": epoch
             })
             for key in epoch_losses.keys():
                 wandb.log({"train/{}".format(key) : epoch_losses[key].avg,
@@ -88,7 +89,8 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
             
             # log_output_images(images, preds, labels) #overwrite on same table on every epoch
             if epoch % opt.n_freq == 0:
-                log_table_output.append_list(epoch,images,labels,preds)  #create a class with list and function to loop through list and add to log table
+                # log_table_output.append_list(output_dict['epoch'],output_dict['hr'],output_dict['final_output'],output_dict['lr'],output_dict['label_edges']) 
+                log_table_output.append_list(output_dict['epoch'],output_dict['hr'],output_dict['final_output'],output_dict['lr'],output_dict['label_edges'],output_dict['pred_edges'],output_dict['input_edges'])  #create a class with list and function to loop through list and add to log table
 
         print('eval psnr: {:.4f}'.format(eval_psnr))
 
@@ -125,7 +127,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/srdense_edges.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/srdense_edges_ltype_addition.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 

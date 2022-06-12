@@ -47,6 +47,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
             "val/val_psnr": eval_psnr,
             "val/val_ssim":eval_ssim,
             "val/val_hfen":eval_hfen,
+            "epoch": epoch,
             })
             for key in epoch_losses.keys():
                 wandb.log({"train/{}".format(key) : epoch_losses[key].avg,
