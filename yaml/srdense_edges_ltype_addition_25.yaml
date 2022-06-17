@@ -3,21 +3,21 @@
 
 
 model_name: 'srdense'
-exp_name: 'srdense_edge_ltype_addition_2'
+exp_name: 'srdense_edge_ltype_addition_25'
 # exp_name: 'srdense_kaiming_init'
 training_type: 'original'
 loss_type: 'addition'  #options addition, original:
  #for addition mse is calculate after adding edges and loss calculated between (image and label image) else loss cal between edges
 project_name: 'super_resolution'
 wandb: True 
-dataset_size: resolution_dataset50
+dataset_size: resolution_dataset25
 dataset_name: 'z_axis'
-num_epochs: 1505
+num_epochs: 505
 num_workers: 8
 seed: 123
-lr: 0.01
-n_freq: 100 # model checkpoint saving frequency
-train_batch_size: 32
+lr: 0.006
+n_freq: 50 # model checkpoint saving frequency
+train_batch_size: 8
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 # opt.device: cpu or gpu during training
 factor: 2

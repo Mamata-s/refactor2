@@ -82,15 +82,15 @@ class SRDenseNet(nn.Module):
         x = self.tanh(self.reconstruction(x))
         return x
 
-    def save(self,model,opt,path,optimizer,epoch):
+    def save(self,model_weights,opt,path,optimizer_weights,epoch):
          torch.save({
                     'training_type':opt.training_type,
                     'epoch': epoch,
                     'growth_rate': opt.growth_rate,
                     'num_blocks':opt.num_blocks,
                     'num_layers':opt.num_layers,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
+                    'model_state_dict': model_weights,
+                    'optimizer_state_dict': optimizer_weights,
                     }, path) 
 
 
@@ -142,13 +142,13 @@ class SRDenseNetUpscale(nn.Module):
         x = self.tanh(self.reconstruction(x))
         return x
 
-    def save(self,model,opt,path,optimizer,epoch):
+    def save(self,model_weights,opt,path,optimizer_weights,epoch):
          torch.save({
                     'training_type':opt.training_type,
                     'epoch': epoch,
                     'growth_rate': opt.growth_rate,
                     'num_blocks':opt.num_blocks,
                     'num_layers':opt.num_layers,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
+                    'model_state_dict': model_weights,
+                    'optimizer_state_dict': optimizer_weights,
                     }, path) 

@@ -157,7 +157,7 @@ class PatchGAN(nn.Module):
         self.backward_G_l1()
         self.opt_G.step()
 
-    def save(self,model,opt,path,epoch):
+    def save(self,model_weights,opt,path,epoch):
         if opt.generator_type in ['unet']:
             torch.save({
                     'epoch': epoch,
@@ -166,7 +166,7 @@ class PatchGAN(nn.Module):
                     'start_filters': opt.start_filters,
                     'activation':opt.activation,
                     'normalization':opt.normalization,
-                    'model_state_dict': model.state_dict(),
+                    'model_state_dict': model_weights,
                     'conv_mode':opt.conv_mode,
                     'dim':opt.dim,
                     'up_mode':opt.up_mode,
@@ -183,7 +183,7 @@ class PatchGAN(nn.Module):
                     'generator_type':opt.generator_type,
                     'init':opt.init,
                     'gan_mode': opt.gan_mode,
-                    'model_state_dict': model.state_dict(),
+                    'model_state_dict': model_weights,
                     'g_optimizer_state_dict': model.opt_G.state_dict(),
                     'd_optimizer_state_dict': model.opt_D.state_dict(),
                     }, path) 
@@ -196,7 +196,7 @@ class PatchGAN(nn.Module):
                     'growth_rate': opt.growth_rate,
                     'num_blocks':opt.num_blocks,
                     'num_layers':opt.num_layers,
-                    'model_state_dict': model.state_dict(),
+                    'model_state_dict': model_weights,
                     'g_optimizer_state_dict': model.opt_G.state_dict(),
                     'd_optimizer_state_dict': model.opt_D.state_dict(),
                     }, path) 
@@ -206,7 +206,7 @@ class PatchGAN(nn.Module):
                     'generator_type':opt.generator_type,
                     'init':opt.init,
                     'gan_mode': opt.gan_mode,
-                    'model_state_dict': model.state_dict(),
+                    'model_state_dict': model_weights,
                     'g_optimizer_state_dict': model.opt_G.state_dict(),
                     'd_optimizer_state_dict': model.opt_D.state_dict(),
                     }, path) 

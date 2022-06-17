@@ -193,13 +193,10 @@ class MRIDatasetEdges(Dataset):
         lr_edges = cv2.Canny(image = image, threshold1=1, threshold2=20) # Canny Edge Detection
         # lr_edges = 255-lr_edges
 
-        hr_edges = cv2.Canny(image = label, threshold1=1, threshold2=20) # Canny Edge Detection
-        # hr_edges = 255-hr_edges
-
         image = image.astype(np.float32) / 255.
         label = label.astype(np.float32) / 255.
         lr_edges = lr_edges.astype(np.float32) / 255.
-        hr_edges = hr_edges.astype(np.float32) / 255.
+    
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
@@ -211,7 +208,6 @@ class MRIDatasetEdges(Dataset):
             image = self.transform(image)
             label = self.transform(label)
             lr_edges = self.transform(lr_edges)
-            hr_edges = self.transform(hr_edges)
 
         # image= torch.unsqueeze(image.float(),0)
         # label = torch.unsqueeze(label.float(),0)

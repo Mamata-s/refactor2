@@ -8,47 +8,17 @@ import torch
 import torch.nn as nn
 import copy
 from utils.logging_metric import LogMetric,create_loss_meters_srdense
-from utils.train_utils import adjust_learning_rate
+from utils.train_utils import adjust_learning_rate,load_dataset_edges
 from utils.train_epoch import train_epoch_edges,  validate_edges
 from utils.preprocess import apply_model_edges, apply_model_using_cv
-from utils.general import save_configuration,LogEdgesOutputs
+from utils.general import save_configuration,save_configuration_yaml,LogEdgesOutputs
 from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir,set_train_dir,set_val_dir
-from dataset.dataset_cv import MRIDatasetEdges,RdnSampler
 import os
 import wandb
 os.environ["CUDA_VISIBLE_DEVICES"]='0,1'
 
 
-def load_dataset_edges(opt):
-    set_val_dir(opt)  #setting the training datasset dir
-    set_train_dir(opt)  #setting the validation set dir
-    train_datasets = MRIDatasetEdges(opt.train_image_dir, opt.train_label_dir)
-    val_datasets = MRIDatasetEdges(opt.val_image_dir, opt.val_label_dir)
 
-    sampler = RdnSampler(train_datasets,opt.train_batch_size,True,classes=train_datasets.classes())
-    val_sampler = RdnSampler(val_datasets,opt.val_batch_size,True,classes=train_datasets.classes())
-
-    train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,sampler = sampler,shuffle=False,
-        num_workers=1,pin_memory=False,drop_last=False)
-    eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size,sampler = val_sampler,shuffle=False,
-        num_workers=1,pin_memory=False,drop_last=False)
-    return train_dataloader,eval_dataloader,train_datasets,val_datasets
-
-
-def load_eval_dataset_edges(opt):
-    set_val_dir(opt)  #setting the training datasset dir
-    set_train_dir(opt)  #setting the validation set dir
-    train_datasets = MRIDatasetEdges(opt.train_image_dir, opt.train_label_dir)
-    val_datasets = MRIDatasetEdges(opt.val_image_dir, opt.val_label_dir)
-
-    sampler = RdnSampler(train_datasets,opt.train_batch_size,True,classes=train_datasets.classes())
-    val_sampler = RdnSampler(val_datasets,opt.val_batch_size,True,classes=train_datasets.classes())
-
-    train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,sampler = sampler,shuffle=False,
-        num_workers=1,pin_memory=False,drop_last=False)
-    eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size,sampler = val_sampler,shuffle=False,
-        num_workers=1,pin_memory=False,drop_last=False)
-    return train_dataloader,eval_dataloader,train_datasets,val_datasets
 
 def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb=None):
 
@@ -89,9 +59,8 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
             
             # log_output_images(images, preds, labels) #overwrite on same table on every epoch
             if epoch % opt.n_freq == 0:
-                # log_table_output.append_list(output_dict['epoch'],output_dict['hr'],output_dict['final_output'],output_dict['lr'],output_dict['label_edges']) 
-                log_table_output.append_list(output_dict['epoch'],output_dict['hr'],output_dict['final_output'],output_dict['lr'],output_dict['label_edges'],output_dict['pred_edges'],output_dict['input_edges'])  #create a class with list and function to loop through list and add to log table
-
+                # log_table_output.append_list(output_dict['epoch'],output_dict['hr'],output_dict['final_output'],output_dict['lr'],output_dict['label_edges'],output_dict['pred_edges'],output_dict['input_edges'])  #create a class with list and function to loop through list and add to log table
+                log_table_output.append_list(output_dict)  #create a class with list and function to loop through list and add to log table
         print('eval psnr: {:.4f}'.format(eval_psnr))
 
         if eval_psnr > best_psnr:
@@ -109,25 +78,17 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
         log_table_output.log_images(columns = ["epoch","image", "pred", "label"],wandb=wandb)
 
     path = metric_dict.save_dict(opt)
-    _ = save_configuration(opt)
+    _ = save_configuration_yaml(opt)
 
-    path="best_weights_factor_{}_epoch_{}".format(opt.factor,best_epoch)
-    torch.save(best_weights, os.path.join(opt.checkpoints_dir, path))
-
+    path="best_weights_factor_{}_epoch_{}.pth".format(opt.factor,best_epoch)
+    path = os.path.join(opt.checkpoints_dir, path)
+    model.module.save(best_weights,opt,path,optimizer.state_dict(),best_epoch)
     print('model saved')
-
-    # if opt.wandb:
-    #     if opt.data_parallel:
-    #         torch.onnx.export(model.module,images,"model.onnx")
-    #     else:
-    #         torch.onnx.export(model,images,"model.onnx")  
-    #     wandb.save("model.onnx")
-
 
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/srdense_edges_ltype_addition.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/srdense_edges.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 
@@ -158,6 +119,10 @@ if __name__ == "__main__":
      if arg in ['edges_training']:
          check=False
     if check: opt.edges_training=False
+
+
+    set_val_dir(opt)  #setting the training datasset dir
+    set_train_dir(opt)  #setting the validation set dir
 
     '''load dataset (loading dataset based on dataset name and factor on arguments)'''
     train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset_edges(opt)

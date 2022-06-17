@@ -7,8 +7,8 @@ from tensorboard_logger import configure, log_value
 import torch
 # from utils.preprocess import 
 import torch.nn as nn
-from dataset.dataset_cv import MRIDataset,MRIDatasetPatch,RdnSampler
-from utils.config import set_val_dir,set_train_dir
+from dataset.dataset_cv import MRIDataset,MRIDatasetPatch,RdnSampler,MRIDatasetEdges
+from utils.config import set_val_dir
 from models.densenet import SRDenseNet
 from models.patch_gan import PatchGAN,init_model
 from models.unet import Unet, UnetSmall
@@ -19,39 +19,32 @@ import torch.optim as optim
 
 ''' set the dataset path based on opt.dataset,opt.factor values and load & return the same dataset/dataloader'''
 def load_dataset(opt):
-    set_val_dir(opt)  #setting the training datasset dir
-    set_train_dir(opt)  #setting the validation set dir
-    if opt.patch:
-        train_datasets = MRIDatasetPatch(opt.train_image_dir, opt.train_label_dir)
-        val_datasets = MRIDatasetPatch(opt.val_image_dir, opt.val_label_dir)
-
-        train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,shuffle=True,
-            num_workers=1,pin_memory=False,drop_last=False)
-        eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size, shuffle=True,
-            num_workers=1,pin_memory=False,drop_last=False)
-    else:
-        train_datasets = MRIDataset(opt.train_image_dir, opt.train_label_dir)
-        val_datasets = MRIDataset(opt.val_image_dir, opt.val_label_dir)
-
-        sampler = RdnSampler(train_datasets,opt.train_batch_size,True,classes=train_datasets.classes())
-        val_sampler = RdnSampler(val_datasets,opt.val_batch_size,True,classes=train_datasets.classes())
-
-        train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,sampler = sampler,shuffle=False,
-            num_workers=1,pin_memory=False,drop_last=False)
-        eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size,sampler = val_sampler,shuffle=False,
-            num_workers=1,pin_memory=False,drop_last=False)
+    train_dataloader,train_datasets =load_train_dataset(opt)
+    eval_dataloader,val_datasets = load_val_dataset(opt)
     return train_dataloader,eval_dataloader,train_datasets,val_datasets
 
 
-def load_val_dataset(opt):
-    val_image_dir,val_label_dir = set_val_dir(dataset_name=opt.dataset_name,factor=opt.factor,dataset_size=opt.dataset_size)  #setting the training datasset dir
-    print(val_image_dir,val_label_dir)
+def load_train_dataset(opt):
     if opt.patch:
-        val_datasets = MRIDatasetPatch(val_image_dir, val_label_dir)
+        train_datasets = MRIDatasetPatch(opt.train_image_dir, opt.train_label_dir)
+        train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,shuffle=True,
+            num_workers=1,pin_memory=False,drop_last=False)
+    else:
+        train_datasets = MRIDataset(opt.train_image_dir, opt.train_label_dir)
+        sampler = RdnSampler(train_datasets,opt.train_batch_size,True,classes=train_datasets.classes())
+        train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,sampler = sampler,shuffle=False,
+            num_workers=1,pin_memory=False,drop_last=False)
+
+    return train_dataloader,train_datasets
+
+
+def load_val_dataset(opt):
+    if opt.patch:
+        val_datasets = MRIDatasetPatch(opt.val_image_dir, opt.val_label_dir)
         eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size, shuffle=True,
             num_workers=1,pin_memory=False,drop_last=False)
     else:
-        val_datasets = MRIDataset(val_image_dir, val_label_dir)
+        val_datasets = MRIDataset(opt.val_image_dir, opt.val_label_dir)
         val_sampler = RdnSampler(val_datasets,opt.val_batch_size,True,classes=val_datasets.classes())
         eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size,sampler = val_sampler,shuffle=False,
             num_workers=1,pin_memory=False,drop_last=False)
@@ -115,3 +108,26 @@ def get_optimizer(opt,model):
     else:
         print(f'optimizer type {opt.optimizer} not found')
         return None
+
+
+
+def load_dataset_edges(opt):
+    train_dataloader,train_datasets = load_train_dataset_edges(opt)
+    eval_dataloader,val_datasets = load_eval_dataset_edges(opt)
+    return train_dataloader,eval_dataloader,train_datasets,val_datasets
+
+
+def load_train_dataset_edges(opt):
+    train_datasets = MRIDatasetEdges(opt.train_image_dir, opt.train_label_dir,size=opt.size)
+    sampler = RdnSampler(train_datasets,opt.train_batch_size,True,classes=train_datasets.classes())
+    train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,sampler = sampler,shuffle=False,
+        num_workers=1,pin_memory=False,drop_last=False)
+   
+    return train_dataloader,train_datasets
+
+def load_eval_dataset_edges(opt):
+    val_datasets = MRIDatasetEdges(opt.val_image_dir, opt.val_label_dir,size=opt.size)
+    val_sampler = RdnSampler(val_datasets,opt.val_batch_size,True,classes=val_datasets.classes())
+    eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size,sampler = val_sampler,shuffle=False,
+        num_workers=1,pin_memory=False,drop_last=False)
+    return eval_dataloader,val_datasets

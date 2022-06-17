@@ -10,17 +10,17 @@
 
 model_name: 'resunet'
 # exp_name: 'resunet_exp_kaiming_init'
-exp_name: 'resunet_exp_norm_init'
+exp_name: 'RESUNET_KAI_Z_F2_BS32_LR0.001'
 training_type: 'original'
 project_name: 'super_resolution'
 wandb: True 
 dataset_size: resolution_dataset50
 dataset_name: 'z_axis'
-num_epochs: 510
+num_epochs: 16
 num_workers: 8
 seed: 345
 lr: 0.001
-n_freq: 100
+n_freq: 2
 train_batch_size: 32
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 factor: 2

@@ -525,13 +525,14 @@ class UnetSmall(nn.Module):
 
         return outputs
 
-    def save(self,model,opt,path,optimizer,epoch):
+    def save(self,model_weights,opt,path,optimizer_weights,epoch):
         torch.save({
                     'training_type':opt.training_type,
                     'epoch': epoch,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
+                    'model_state_dict': model_weights,
+                    'optimizer_state_dict': optimizer_weights,
                     }, path) 
+
 
 
 

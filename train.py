@@ -11,10 +11,11 @@ from utils.logging_metric import LogMetric,create_loss_meters_srdense
 from utils.train_utils import adjust_learning_rate
 from utils.train_epoch import train_epoch_srdense,validate_srdense
 from utils.preprocess import apply_model,apply_model_using_cv
-from utils.general import save_configuration,LogOutputs
-from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir
+from utils.general import save_configuration,save_configuration_yaml,LogOutputs
+from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir,set_val_dir,set_train_dir
 import os
 import wandb
+import json
 os.environ["CUDA_VISIBLE_DEVICES"]='0,1'
 
 def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb=None):
@@ -75,37 +76,36 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
         log_table_output.log_images(columns = ["epoch","image", "pred", "label"],wandb=wandb)
 
     path = metric_dict.save_dict(opt)
-    _ = save_configuration(opt)
+    _ = save_configuration_yaml(opt)
 
-    path="best_weights_factor_{}_epoch_{}".format(opt.factor,best_epoch)
-    torch.save(best_weights, os.path.join(opt.checkpoints_dir, path))
+    # path="best_weights_factor_{}_epoch_{}".format(opt.factor,best_epoch)
+    # torch.save(best_weights, os.path.join(opt.checkpoints_dir, path))
+    path="best_weights_factor_{}_epoch_{}.pth".format(opt.factor,best_epoch)
+    path = os.path.join(opt.checkpoints_dir, path)
+    model.module.save(best_weights,opt,path,optimizer.state_dict(),best_epoch)
 
     print('model saved')
-
-    # if opt.wandb:
-    #     if opt.data_parallel:
-    #         torch.onnx.export(model.module,images,"model.onnx")
-    #     else:
-    #         torch.onnx.export(model,images,"model.onnx")  
-    #     wandb.save("model.onnx")
 
 
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/srdense_error_map.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, 
+    default='yaml/srdense.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 
     '''load the configuration file and append to current parser arguments'''
     ydict = yaml.load(open(opt.config), Loader=yaml.FullLoader)
     for k,v in ydict.items():
-        parser.add_argument('--'+str(k), required=False, default=v)
-    opt   = parser.parse_args()
+        if k=='config':
+            pass
+        else:
+            parser.add_argument('--'+str(k), required=False, default=v)
+    opt  = parser.parse_args()
 
     '''adding seed for reproducibility'''
     torch.manual_seed(opt.seed)
-
 
     '''set device'''
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -125,6 +125,9 @@ if __name__ == "__main__":
          check=False
     if check: opt.edges_training=False
 
+
+    set_val_dir(opt)  #setting the training datasset dir
+    set_train_dir(opt)  #setting the validation set dir
     '''load dataset (loading dataset based on dataset name and factor on arguments)'''
     train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset(opt)
 

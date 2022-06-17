@@ -136,7 +136,7 @@ def apply_model_edges(model,epoch,opt):
     outputs.to(opt.device)
 
     outputs = outputs.to(opt.device) + image_tensor.to(opt.device)
-    outputs = min_max_normalize(outputs)
+    # outputs = min_max_normalize(outputs)
     if not os.path.exists(opt.epoch_images_dir):
         os.makedirs(opt.epoch_images_dir)
 
@@ -191,7 +191,7 @@ def hfen_error(original_arr,est_arr,sigma=3):
    return hfen
 
 # https://github.com/Lornatang/ESRGAN-PyTorch/blob/main/imgproc.py
-def image2tensor(image: np.ndarray, range_norm: bool, half: bool) -> torch.Tensor:
+def image2tensor(image: np.ndarray, range_norm: bool=False, half: bool=False) -> torch.Tensor:
     """Convert the image data type to the Tensor (NCWH) data type supported by PyTorch
     Args:
         image (np.ndarray): The image data read by ``OpenCV.imread``, the data range is [0,255] or [0, 1]
@@ -217,7 +217,7 @@ def image2tensor(image: np.ndarray, range_norm: bool, half: bool) -> torch.Tenso
     return tensor
 
 
-def tensor2image(tensor: torch.Tensor, range_norm: bool, half: bool,color:bool) -> Any:
+def tensor2image(tensor: torch.Tensor, range_norm: bool=False, half: bool=False,color:bool=False) -> Any:
     """Convert the Tensor(NCWH) data type supported by PyTorch to the np.ndarray(WHC) image data type
     Args:
         tensor (torch.Tensor): Data types supported by PyTorch (NCHW), the data range is [0, 1]
@@ -235,8 +235,8 @@ def tensor2image(tensor: torch.Tensor, range_norm: bool, half: bool,color:bool) 
         tensor = tensor.half()
 
     if color:
-      image = tensor.squeeze(0).permute(1, 2, 0).mul(255).clamp(0, 255).cpu().numpy().astype("uint8")
+      image = tensor.detach().squeeze().permute(1, 2, 0).mul(255).clamp(0, 255).cpu().numpy().astype("uint8")
     else:
-        image = tensor.squeeze(0).mul(255).clamp(0, 255).cpu().numpy().astype("uint8") 
+        image = tensor.detach().squeeze().mul(255).clamp(0, 255).cpu().numpy().astype("uint8") 
 
     return image

@@ -42,7 +42,7 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
             if not os.path.exists(opt.checkpoints_dir):
                 os.makedirs(opt.checkpoints_dir)
             path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
-            model.module.save(model,opt,path,optimizer,epoch)
+            model.module.save(model.state_dict(),opt,path,optimizer.state_dict(),epoch)
             # torch.save(model.state_dict(), os.path.join(config['outputs_dir'], 'epoch_{}_f_{}.pth'.format(epoch,args.factor)))
     return {'epoch':epoch,
             'hr': labels,
@@ -116,8 +116,7 @@ def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_datalo
             if not os.path.exists(opt.checkpoints_dir):
                 os.makedirs(opt.checkpoints_dir)
             path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
-            model.module.save(model,opt,path,optimizer,epoch)
-            # torch.save(model.state_dict(), os.path.join(config['outputs_dir'], 'epoch_{}_f_{}.pth'.format(epoch,args.factor)))
+            model.module.save(model.state_dict(),opt,path,optimizer.state_dict(),epoch)
     return images,labels,preds
 
 
@@ -188,7 +187,7 @@ def train_epoch_patch_gan(opt,model,train_dl, epoch, epoch_losses):
         if not os.path.exists(opt.checkpoints_dir):
                 os.makedirs(opt.checkpoints_dir)
         path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
-        model.save(model,opt,path,epoch)
+        model.save(model.state_dict(),opt,path,epoch)
         # path = os.path.join(opt.checkpoints_dir, 'full_model_epoch_{}_f_{}.pth'.format(epoch,opt.factor))
         # torch.save(model.state_dict(), path)
     with torch.no_grad():

@@ -11,7 +11,7 @@ from utils.logging_metric import LogMetric,create_loss_meters_gan
 from utils.train_utils import adjust_learning_rate
 from utils.train_epoch import train_epoch_patch_gan,validate_patch_gan
 from utils.preprocess import apply_model
-from utils.general import save_configuration,log_output_images,LogOutputs
+from utils.general import save_configuration,save_configuration_yaml,log_output_images,LogOutputs
 from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir
 import os
 import wandb
@@ -79,12 +79,17 @@ def train(opt,model,train_dataloader,eval_dataloader,wandb=None):
         log_table_output.log_images(columns = ["epoch","image", "pred", "label"],wandb=wandb) 
 
     path = metric_dict.save_dict(opt)
-    _ = save_configuration(opt)
+    _ = save_configuration_yaml(opt)
     # print(metric_dict.log_dict)
-    path="best_weights_factor_{}_epoch_{}".format(opt.factor,best_epoch)
-    torch.save(best_weights, os.path.join(opt.checkpoints_dir, path))
 
+    # path="best_weights_factor_{}_epoch_{}.pth".format(opt.factor,best_epoch)
+    # torch.save(best_weights, os.path.join(opt.checkpoints_dir, path))
+
+    path="best_weights_factor_{}_epoch_{}.pth".format(opt.factor,best_epoch)
+    path = os.path.join(opt.checkpoints_dir, path)
+    model.save(best_weights,opt,path,best_epoch)
     print('model saved')
+
     # if opt.wandb:
     #     torch.onnx.export(model.net_G,images,"model.onnx")
     #     wandb.save("model.onnx")
