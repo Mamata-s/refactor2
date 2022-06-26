@@ -57,6 +57,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
             
             # log_output_images(images, preds, labels) #overwrite on same table on every epoch
             if epoch % opt.n_freq == 0:
+                print('images shape',images.shape)
                 log_table_output.append_list(epoch,images,labels,preds)  #create a class with list and function to loop through list and add to log table
 
         print('eval psnr: {:.4f}'.format(eval_psnr))

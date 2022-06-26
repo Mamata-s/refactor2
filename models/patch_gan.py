@@ -157,7 +157,7 @@ class PatchGAN(nn.Module):
         self.backward_G_l1()
         self.opt_G.step()
 
-    def save(self,model_weights,opt,path,epoch):
+    def save(self,model,model_weights,opt,path,epoch):
         if opt.generator_type in ['unet']:
             torch.save({
                     'epoch': epoch,

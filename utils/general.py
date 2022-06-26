@@ -184,6 +184,12 @@ class LogOutputs():
         self.labels_list.append(preprocess(labels[0]))
         self.predictions_list.append(preprocess(predictions[0]))
 
+    def append_list_3d(self,epoch,images,labels,predictions):
+        self.epoch_list.append(epoch)
+        self.images_list.append(preprocess(images))
+        self.labels_list.append(preprocess(labels))
+        self.predictions_list.append(preprocess(predictions))
+
     def log_images(self,columns=["epoch","image", "pred", "label"],wandb=None):
         table = wandb.Table(columns=columns)
         for epoch,img, pred, targ in zip(self.epoch_list,self.images_list,self.predictions_list,self.labels_list):
@@ -228,3 +234,15 @@ class LogEdgesOutputs():
              wandb.Image(input_edges),
              )
         wandb.log({"outputs_table":table}, commit=False)
+
+
+def min_max_normalize(arr):
+    return (arr-arr.min())/(arr.max()-arr.min())
+
+
+def read_pickle(path):
+    import pickle
+
+    with open(path, 'rb') as f:
+        x = pickle.load(f)
+    return x

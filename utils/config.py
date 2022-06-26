@@ -9,36 +9,61 @@ opt.patch=True
 '''
 
 #datset path for corresponding dataset_name and dataset_size
-def set_train_dir(opt):
-    if opt.patch:
-        set_patch_train_dir(opt)
+def get_train_dir(patch,dataset_size,dataset_name,factor,patch_size=96):
+    if patch:
+        train_image_dir,train_label_dir = get_patch_train_dir(dataset_size,patch_size,factor)
     else:
-        opt.train_image_dir = '{}/{}/factor_{}/train'.format(opt.dataset_size,opt.dataset_name, opt.factor)
-        opt.train_label_dir = '{}/{}/label/train'.format(opt.dataset_size,opt.dataset_name)
+        train_image_dir = '{}/{}/factor_{}/train'.format(dataset_size,dataset_name, factor)
+        train_label_dir = '{}/{}/label/train'.format(dataset_size,dataset_name)
+    return train_image_dir,train_label_dir
+
+def get_patch_train_dir(dataset_size,patch_size,factor):
+    train_image_dir = '{}/patch/patch-{}/factor_{}/train'.format(dataset_size,patch_size, factor)
+    train_label_dir ='{}/patch/patch-{}/label/train'.format(dataset_size,patch_size, factor)
+    return train_image_dir, train_label_dir
+
+def set_train_dir(opt):
+    opt.train_image_dir,opt.train_label_dir = get_train_dir(opt.patch,opt.dataset_size,opt.dataset_name,opt.factor,patch_size=opt.patch_size)
     return 1
+
+
+def set_downsample_train_val_dir(opt):
+    set_downsample_train_dir(opt)
+    set_downsample_val_dir(opt)
+
+
+def set_downsample_train_dir(opt):
+    opt.downsample_train_dir,_ = get_train_dir(opt.patch,opt.dataset_size,opt.dataset_name,opt.factor+2)
+    return 1
+
+def set_downsample_val_dir(opt):
+    if opt.patch:
+        opt.downsample_val_dir,_ = get_patch_val_dir(dataset_size=opt.dataset_size,patch_size=opt.patch_size,factor=opt.factor+2)       
+    else:
+        opt.downsample_val_dir,_ = get_val_dir(dataset_name=opt.dataset_name,factor=opt.factor+2,dataset_size=opt.dataset_size)
+    return 1  
+
 
 def set_val_dir(opt=None,dataset_name=None,factor=None,dataset_size=None):
     if opt:
         if opt.patch:
-            set_patch_val_dir(opt)
+            opt.val_image_dir,opt.val_label_dir = get_patch_val_dir(opt.dataset_size,opt.patch_size,opt.factor)
         else:
-            opt.val_image_dir = '{}/{}/factor_{}/val'.format(opt.dataset_size,opt.dataset_name, opt.factor)
-            opt.val_label_dir = '{}/{}/label/val'.format(opt.dataset_size,opt.dataset_name)
+            opt.val_image_dir,opt.val_label_dir = get_val_dir(opt.dataset_name,opt.factor,opt.dataset_size)
         return 1
     else:
-        val_image_dir = '{}/{}/factor_{}/val'.format(dataset_size,dataset_name,factor)
-        val_label_dir = '{}/{}/label/val'.format(dataset_size,dataset_name) 
+        val_image_dir,val_label_dir = get_val_dir(opt.dataset_name,opt.factor,opt.dataset_size)
         return val_image_dir,val_label_dir
 
+def get_val_dir(dataset_name=None,factor=None,dataset_size=None):
+    val_image_dir = '{}/{}/factor_{}/val'.format(dataset_size,dataset_name,factor)
+    val_label_dir = '{}/{}/label/val'.format(dataset_size,dataset_name) 
+    return val_image_dir,val_label_dir
 
-def set_patch_train_dir(opt):
-    opt.train_image_dir = '{}/patch/patch-{}/factor_{}/train'.format(opt.dataset_size,opt.patch_size, opt.factor)
-    opt.train_label_dir ='{}/patch/patch-{}/factor_{}/label/train'.format(opt.dataset_size,opt.patch_size, opt.factor)
-
-def set_patch_val_dir(opt):
-    opt.val_image_dir= '{}/patch/patch-{}/factor_{}/val'.format(opt.dataset_size,opt.patch_size,opt.factor)
-    opt.val_label_dir='{}/patch/patch-{}/factor_{}/label/val'.format(opt.dataset_size,opt.patch_size,opt.factor)
-
+def get_patch_val_dir(dataset_size,patch_size,factor):
+    val_image_dir= '{}/patch/patch-{}/factor_{}/val'.format(dataset_size,patch_size,factor)
+    val_label_dir='{}/patch/patch-{}/label/val'.format(dataset_size,patch_size,factor)
+    return val_image_dir,val_label_dir
 
 
 # outputs paths(checkpoints, epoch images,input_batch_images and output batch images) for corresponding datset_name_size_factor_model_name
@@ -70,7 +95,4 @@ def set_plots_dir(opt):
         opt.plot_dir = 'outputs/{}/{}/{}/plots/patch/patch-{}/factor_{}/'.format(opt.dataset_size,opt.model_name, opt.exp_name,opt.patch_size,opt.factor)
     else:
         opt.plot_dir = 'outputs/{}/{}/{}/plots/{}/factor_{}/'.format(opt.dataset_size,opt.model_name, opt.exp_name,opt.dataset_name,opt.factor)
-
-
-
 

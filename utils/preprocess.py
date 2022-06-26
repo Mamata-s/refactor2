@@ -150,9 +150,27 @@ def apply_model_edges(model,epoch,opt):
     print("Image saved as {}".format(path))
     return True
 
-
-
-
+#incomplete need to write
+def apply_model_3d(model,epoch,opt,addition=False):
+    image = np.load(opt.epoch_image_path)
+    image = torch.from_numpy(image)
+    image = min_max_normalize(image)
+    image_tensor= torch.unsqueeze(image.float(),0)
+    output = model(image_tensor)
+    if addition:
+        output = output.to(opt.device)+image_tensor.to(opt.device)
+    if not os.path.exists(opt.epoch_images_dir):
+        os.makedirs(opt.epoch_images_dir)
+    path = os.path.join(opt.epoch_images_dir,'epoch_{}.png'.format(epoch))
+    image_numpy = output.squeeze().detach().to('cpu').float().numpy()
+    image_numpy = min_max_normalize(image_numpy)
+    image_numpy = image_numpy*255.
+    image_numpy = image_numpy.clip(0, 255)
+    image_numpy = image_numpy.astype(np.uint8)
+    cv2.imwrite(path, image_numpy)
+    print("Image saved as {}".format(path))
+    print('apply model 3d not implemented')
+    return True
 
 def apply_model_using_cv(model,epoch,opt,addition=False):
     image= Image.open(opt.epoch_image_path)
@@ -167,7 +185,7 @@ def apply_model_using_cv(model,epoch,opt,addition=False):
 
     if addition:
         output = output.to(opt.device)+image_tensor.to(opt.device)
-        output = min_max_normalize(output)
+        # output = min_max_normalize(output)
     if not os.path.exists(opt.epoch_images_dir):
         os.makedirs(opt.epoch_images_dir)
 

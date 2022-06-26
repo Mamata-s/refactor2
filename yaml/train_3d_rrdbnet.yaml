@@ -1,0 +1,31 @@
+#configuration file
+#this is file for training srdense net with original training type
+
+model_name: 'rrdbnet'
+# exp_name: 'srdense_norm_init'
+exp_name: '3DRRDBNet_NB5_KAI_NE805_BS16_LR0.001_F2_ADAM_MSE'
+training_type: 'original'
+project_name: 'super_resolution'
+wandb: True 
+dataset_size: '3d_dataset_50'
+num_epochs: 20
+num_workers: 8
+seed: 123
+lr: 0.0008
+patch_size: 64
+n_freq: 4 # model checkpoint saving frequency
+train_batch_size: 4
+val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
+# opt.device: cpu or gpu during training
+factor: 2
+# init: 'norm' 
+addition: False
+
+#srdense
+criterion: mse
+optimizer: adam
+num_blocks: 3
+
+
+
+

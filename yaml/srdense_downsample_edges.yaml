@@ -2,22 +2,22 @@
 #this is file for training srdense net with original training type
 
 model_name: 'srdense'
-exp_name: 'SRDENSE_EDGES_DEBUG'
-# exp_name: 'srdense_kaiming_init'
-training_type: 'original'
+exp_name: 'SRDENSE_GR7NB5NL5S4_DOWNSAMPLE_EDGES_LtypeAdd_MSE_ADAM_F2_LR0.001_FULL50_EP805_initNorm'
+training_type: 'addition' 
 edge_type: 'downsample'  #options: canny, downsample. if downsample provide opt.downsample_train_dir and opt.downsample_val_dir also
-loss_type: 'original'  #options addition, original:
+loss_type: 'addition'  #options addition, original: with addition loss is calculated after addition
  #for addition mse is calculate after adding edges and loss calculated between (image and label image) else loss cal between edges
 project_name: 'super_resolution'
 wandb: True 
 dataset_size: resolution_dataset50
 size: 50
 dataset_name: 'full'
-num_epochs: 16
+num_epochs: 805
 num_workers: 8
 seed: 123
-lr: 0.01
-n_freq: 2 # model checkpoint saving frequency
+lr: 0.001
+lr_decay_factor: 0.9  #lr is decay by 10% after every 150th or 250th epoch
+n_freq: 100 # model checkpoint saving frequency
 train_batch_size: 32
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 # opt.device: cpu or gpu during training
@@ -37,5 +37,5 @@ weights_file: None
 scale: 4
 patch: False
 
-note: 'this is trained after making correction of last layer as tanh instead of conv and replacing relu with leaky_relu with negative slope of 0.1'
+note: 'Training srdense net for predicting the edges by providing difference between lr and its downsample version as the input'
 

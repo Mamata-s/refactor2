@@ -6,6 +6,7 @@ import os
 import torch.nn as nn
 from skimage.metrics import peak_signal_noise_ratio
 from skimage.metrics import structural_similarity
+from utils.general import min_max_normalize
 from utils.logging_metric import update_epoch_losses, update_losses, log_results
 from utils.preprocess import hfen_error
 
@@ -27,7 +28,7 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
                 loss = criterion(outs, labels)
             else:
                 loss = criterion(preds, label_error_map)
-
+            preds = min_max_normalize(preds)
             # epoch_losses.update(loss.item(), len(images))
             update_epoch_losses(epoch_losses, count=len(images),values=[loss.item()])
             
@@ -118,6 +119,37 @@ def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_datalo
             path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
             model.module.save(model.state_dict(),opt,path,optimizer.state_dict(),epoch)
     return images,labels,preds
+
+def validate_srdense_3d(opt,model, dataloader,criterion=nn.MSELoss(),addition=False):
+    model.eval()
+    l1_loss = nn.L1Loss()
+    count,psnr,ssim,loss,l1,hfen = 0,0,0,0,0,0
+    with torch.no_grad():
+        for image,label in dataloader:  #batch size is always 1 to calculate psnr and ssim
+            image = image.to(opt.device)
+            label = label.to(opt.device)
+            output = model(image)
+
+            if addition:
+                output = output+image
+
+
+            for i in range(output.shape[2]):
+                loss += criterion(output[:,:,i,:,:],label[:,:,i,:,:]) 
+                l1 += l1_loss(output[:,:,i,:,:],label[:,:,i,:,:])
+                count += 1
+                output = output.clamp(0.0,1.0)
+                output = output[:,:,i,:,:].squeeze().detach().to('cpu').numpy()
+                # outputs = min_max_normalize(outputs)
+                image = image[:,:,i,:,:].squeeze().to('cpu').numpy()
+                label = label[:,:,i,:,:].squeeze().detach().to('cpu').numpy()
+
+                psnr += peak_signal_noise_ratio(output, label)
+                ssim += structural_similarity(output, label)
+                hfen += hfen_error(output, label)
+    return loss.item()/count, l1.item()/count,psnr.item()/count, ssim.item()/count,hfen.item()/count
+
+
 
 
 def validate_srdense(opt,model, dataloader,criterion=nn.MSELoss(),addition=False):
