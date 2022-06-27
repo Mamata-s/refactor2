@@ -42,7 +42,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
         output_dict = train_epoch_edges(opt,model,criterion,optimizer,train_datasets,train_dataloader,epoch,epoch_losses,loss_type=opt.loss_type)
         eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen = validate_edges(opt,model, eval_dataloader,criterion)
 
-        apply_model_edges(model,epoch,opt)
+        # apply_model_edges(model,epoch,opt)
 
         if opt.wandb:
             wandb.log({"val/val_loss" : eval_loss,
@@ -87,7 +87,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/rrdbnet_downsample_edges_patch.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/srdense_patch_downsample_add_2.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 
@@ -134,6 +134,8 @@ if __name__ == "__main__":
     if opt.patch:
         opt.epoch_image_path = '{}/z_axis/factor_{}/train/lr_f1_160_{}_z_46.png'.format(opt.dataset_size,opt.factor,opt.factor)
     else:
+        if opt.edge_type in ['downsample']:
+            print('save epoch image not implemented for downsample edges so using canny edges instead')
         opt.epoch_image_path = '{}/{}/factor_{}/train/lr_f1_160_{}_z_46.png'.format(opt.dataset_size,opt.dataset_name, opt.factor,opt.factor)
 
     '''load model'''
@@ -163,7 +165,7 @@ if __name__ == "__main__":
 
     '''setup a output strategy based on training type'''
     if opt.training_type in ['addition','error_map']:
-        opt.addition=True
+        opt.addition= True
     else:
         opt.addition=False
 
@@ -190,6 +192,9 @@ if __name__ == "__main__":
 
     else:
         wandb=None
+
+    # print(opt)
+    # quit();
 
     '''training the model'''
     train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb = wandb)

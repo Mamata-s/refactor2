@@ -264,27 +264,23 @@ class MRIDatasetDownsampleEdges(Dataset):
         downsample = cv2.imread(downsample_path)
         downsample = cv2.cvtColor(downsample, cv2.COLOR_BGR2GRAY)
 
-        lr_edges = image-downsample
-        # lr_edges = 255-lr_edges
-
+    
         image = image.astype(np.float32) / 255.
         label = label.astype(np.float32) / 255.
-        lr_edges = lr_edges.astype(np.float32) / 255.
+        downsample = downsample.astype(np.float32) / 255.
     
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
         image = image2tensor(image, range_norm=False, half=False)
         label = image2tensor(label, range_norm=False, half=False)
-        lr_edges = image2tensor(lr_edges, range_norm=False, half=False)
+        downsample = image2tensor(downsample, range_norm=False, half=False)
+        lr_edges = image-downsample
 
         if self.transform is not None:
             image = self.transform(image)
             label = self.transform(label)
             lr_edges = self.transform(lr_edges)
-
-        # image= torch.unsqueeze(image.float(),0)
-        # label = torch.unsqueeze(label.float(),0)
     
         return image,label,lr_edges
 
@@ -322,27 +318,26 @@ class MRIDatasetPatchDownsampleEdges(Dataset):
         downsample = cv2.imread(downsample_path)
         downsample = cv2.cvtColor(downsample, cv2.COLOR_BGR2GRAY)
 
-        lr_edges = image-downsample
-        # lr_edges = 255-lr_edges
 
         image = image.astype(np.float32) / 255.
         label = label.astype(np.float32) / 255.
-        lr_edges = lr_edges.astype(np.float32) / 255.
-    
+        downsample = downsample.astype(np.float32)/255.
+
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
         image = image2tensor(image, range_norm=False, half=False)
         label = image2tensor(label, range_norm=False, half=False)
-        lr_edges = image2tensor(lr_edges, range_norm=False, half=False)
+        downsample = image2tensor(downsample,range_norm=False,half=False)
 
+        lr_edges = image-downsample
+        
         if self.transform is not None:
             image = self.transform(image)
             label = self.transform(label)
             lr_edges = self.transform(lr_edges)
 
-        # image= torch.unsqueeze(image.float(),0)
-        # label = torch.unsqueeze(label.float(),0)
+    
     
         return image,label,lr_edges
 

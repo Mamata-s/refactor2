@@ -59,7 +59,7 @@ def predict_canny_edges(model,path,factor,device,psnr,ssim):
     ref = cv2.imread('test_set/labels/{}'.format(file))
     ref = cv2.cvtColor(ref, cv2.COLOR_BGR2GRAY)
 
-    label_edges = ref-degraded
+    # label_edges = ref-degraded #not effective while plotting
     
     degraded = degraded.astype(np.float32)/255.
     ref = ref.astype(np.float32)/255.
@@ -69,6 +69,8 @@ def predict_canny_edges(model,path,factor,device,psnr,ssim):
     ref = image2tensor(ref).unsqueeze(dim=0).to(device)
     input_edges=image2tensor(lr_edges).unsqueeze(dim=0).to(device)
     
+    label_edges = ref-degraded
+    label_edges= min_max_normalize(label_edges)
  
     pre_edges = model(input_edges)
     pre=pre_edges+degraded
@@ -80,9 +82,9 @@ def predict_canny_edges(model,path,factor,device,psnr,ssim):
     scores.append(compare_images(pre, ref,psnr,ssim))
 
     # return images and scores
-    return tensor2image(ref), tensor2image(degraded), tensor2image(pre), tensor2image(input_edges),tensor2image(pre_edges),label_edges, scores
+    return tensor2image(ref), tensor2image(degraded), tensor2image(pre), tensor2image(input_edges),tensor2image(pre_edges),tensor2image(label_edges), scores
 
-
+# correct version
 def predict_downsample_edges(model,path,downsample_path,factor,device,psnr,ssim):
     image_path = path
     # load the degraded and reference images
@@ -93,37 +95,35 @@ def predict_downsample_edges(model,path,downsample_path,factor,device,psnr,ssim)
     ref = cv2.cvtColor(ref, cv2.COLOR_BGR2GRAY).astype(np.float32)
     downsample = cv2.imread(os.path.join(downsample_path,file))
     downsample = cv2.cvtColor(downsample, cv2.COLOR_BGR2GRAY).astype(np.float32)
-    input_edges = degraded-downsample
-    label_edges = ref - downsample
 
     degraded = degraded/255.
     ref = ref/255.
     downsample=downsample/255.
-    input_edges = input_edges/255.
-    # label_edges = label_edges/255.
-
-    input_edges= min_max_normalize(input_edges)
-    # label_edges = min_max_normalize(label_edges)
+   
 
     degraded = image2tensor(degraded).unsqueeze(dim=0).to(device)
     ref = image2tensor(ref).unsqueeze(dim=0).to(device)
     downsample = image2tensor(downsample).unsqueeze(dim=0).to(device)
-    input_edges =image2tensor(input_edges).unsqueeze(dim=0).to(device)
-    # label_edges =image2tensor(label_edges).unsqueeze(dim=0).to(device)
+  
     
-    # input_edges = degraded-downsample
+    input_edges = degraded-downsample
+    label_edges = ref - degraded
+
     # perform super-resolution with srcnn
     pre_edges = model(input_edges)
     pre=pre_edges+degraded
-    pre_edges= min_max_normalize(pre_edges)
+    pre_edges = min_max_normalize(pre_edges)
+
+    input_edges= min_max_normalize(input_edges)
+    label_edges = min_max_normalize(label_edges)
+
     # image quality calculations
     scores = []
     scores.append(compare_images(degraded, ref,psnr,ssim))
     scores.append(compare_images(pre, ref,psnr,ssim))
 
     # return images and scores
-    return tensor2image(ref), tensor2image(degraded), tensor2image(pre), tensor2image(input_edges),tensor2image(pre_edges),label_edges, scores
-
+    return tensor2image(ref), tensor2image(degraded), tensor2image(pre), tensor2image(input_edges),tensor2image(pre_edges),tensor2image(label_edges), scores
 
 def save_results_edges(model,path,opt):
     if opt.edge_type in ['downsample']:
@@ -250,6 +250,7 @@ if __name__ == '__main__':
 
 
     opt = parser.parse_args()
+    print(opt)
 
     '''set device'''
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

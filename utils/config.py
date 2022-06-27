@@ -9,12 +9,9 @@ opt.patch=True
 '''
 
 #datset path for corresponding dataset_name and dataset_size
-def get_train_dir(patch,dataset_size,dataset_name,factor,patch_size=96):
-    if patch:
-        train_image_dir,train_label_dir = get_patch_train_dir(dataset_size,patch_size,factor)
-    else:
-        train_image_dir = '{}/{}/factor_{}/train'.format(dataset_size,dataset_name, factor)
-        train_label_dir = '{}/{}/label/train'.format(dataset_size,dataset_name)
+def get_train_dir(patch,dataset_size,dataset_name,factor):
+    train_image_dir = '{}/{}/factor_{}/train'.format(dataset_size,dataset_name, factor)
+    train_label_dir = '{}/{}/label/train'.format(dataset_size,dataset_name)
     return train_image_dir,train_label_dir
 
 def get_patch_train_dir(dataset_size,patch_size,factor):
@@ -23,7 +20,10 @@ def get_patch_train_dir(dataset_size,patch_size,factor):
     return train_image_dir, train_label_dir
 
 def set_train_dir(opt):
-    opt.train_image_dir,opt.train_label_dir = get_train_dir(opt.patch,opt.dataset_size,opt.dataset_name,opt.factor,patch_size=opt.patch_size)
+    if opt.patch:
+        opt.train_image_dir,opt.train_label_dir = get_patch_train_dir(opt.dataset_size,opt.patch_size,opt.factor)
+    else:
+        opt.train_image_dir,opt.train_label_dir = get_train_dir(opt.patch,opt.dataset_size,opt.dataset_name,opt.factor)
     return 1
 
 
@@ -33,7 +33,10 @@ def set_downsample_train_val_dir(opt):
 
 
 def set_downsample_train_dir(opt):
-    opt.downsample_train_dir,_ = get_train_dir(opt.patch,opt.dataset_size,opt.dataset_name,opt.factor+2)
+    if opt.patch:
+        opt.downsample_train_dir,_ = get_patch_train_dir(opt.dataset_size,opt.patch_size,opt.factor+2)
+    else:
+        opt.downsample_train_dir,_ = get_train_dir(opt.patch,opt.dataset_size,opt.dataset_name,opt.factor+2)
     return 1
 
 def set_downsample_val_dir(opt):
@@ -42,7 +45,6 @@ def set_downsample_val_dir(opt):
     else:
         opt.downsample_val_dir,_ = get_val_dir(dataset_name=opt.dataset_name,factor=opt.factor+2,dataset_size=opt.dataset_size)
     return 1  
-
 
 def set_val_dir(opt=None,dataset_name=None,factor=None,dataset_size=None):
     if opt:

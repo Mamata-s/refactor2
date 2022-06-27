@@ -22,9 +22,9 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
             edges_lr = edges_lr.to(opt.device)
             label_error_map = labels-images
             preds = model(edges_lr)
+            outs = preds+images
 
             if loss_type in ['addition']:
-                outs = preds+images
                 loss = criterion(outs, labels)
             else:
                 loss = criterion(preds, label_error_map)
@@ -36,8 +36,8 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
             loss.backward()
             optimizer.step()
 
-            t.set_postfix(loss='{:.6f}'.format(epoch_losses['train_loss'].avg))
-            t.update(len(images))
+        t.set_postfix(loss='{:.6f}'.format(epoch_losses['train_loss'].avg))
+        t.update(len(images))
 
         if epoch % opt.n_freq==0:
             if not os.path.exists(opt.checkpoints_dir):
@@ -47,7 +47,7 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
             # torch.save(model.state_dict(), os.path.join(config['outputs_dir'], 'epoch_{}_f_{}.pth'.format(epoch,args.factor)))
     return {'epoch':epoch,
             'hr': labels,
-            'final_output':images+preds,
+            'final_output':outs,
             'lr':images,
             'label_edges':label_error_map,
             'pred_edges': preds,
@@ -110,8 +110,8 @@ def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_datalo
             loss.backward()
             optimizer.step()
 
-            t.set_postfix(loss='{:.6f}'.format(epoch_losses['train_loss'].avg))
-            t.update(len(images))
+        t.set_postfix(loss='{:.6f}'.format(epoch_losses['train_loss'].avg))
+        t.update(len(images))
 
         if epoch % opt.n_freq==0:
             if not os.path.exists(opt.checkpoints_dir):

@@ -3,22 +3,23 @@
 
 
 model_name: 'srdense'
-exp_name: 'srdense_norm_init'
-# exp_name: 'SRDENSE_GR7NB5NL5S4_KAI_NE3005_BS32_LR0.006_Z_F4_ADAM_MSE'
+# exp_name: 'srdense_norm_init'
+exp_name: 'SRDENSE_GR7NB5NL5S4_KAI_NE3005_BS32_LR0.006_Z_F2_ADAM_MSE'
 training_type: 'original'
 project_name: 'super_resolution'
 wandb: True 
 dataset_size: resolution_dataset50
 dataset_name: 'z_axis'
-num_epochs: 6
+num_epochs: 3005
 num_workers: 8
 seed: 123
-lr: 0.001
-n_freq: 1 # model checkpoint saving frequency
+lr: 0.006
+lr_original:
+n_freq: 100 # model checkpoint saving frequency
 train_batch_size: 32
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 # opt.device: cpu or gpu during training
-factor: 4
+factor: 2
 # init: 'norm' 
 init: 'kaiming'  #options: norm,xavier,kaiming
 
