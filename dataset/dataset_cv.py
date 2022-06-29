@@ -191,7 +191,9 @@ class MRIDatasetEdges(Dataset):
         label = cv2.imread(label_path)
         label = cv2.cvtColor(label, cv2.COLOR_BGR2GRAY)
 
-        lr_edges = cv2.Canny(image = image, threshold1=1, threshold2=20) # Canny Edge Detection
+        image_blur = cv2.GaussianBlur(image, (5,5), 0) 
+
+        lr_edges = cv2.Canny(image = image_blur, threshold1=1, threshold2=20) # Canny Edge Detection
         # lr_edges = 255-lr_edges
 
         image = image.astype(np.float32) / 255.
