@@ -258,3 +258,25 @@ def tensor2image(tensor: torch.Tensor, range_norm: bool=False, half: bool=False,
         image = tensor.detach().squeeze().mul(255).clamp(0, 255).cpu().numpy().astype("uint8") 
 
     return image
+
+
+
+
+def crop_pad_kspace(data,pad=False,factor=2):  #function for cropping and/or padding the image in kspace
+    F = np.fft.fft2(data)
+    fshift = np.fft.fftshift(F)
+    
+    y,x = fshift.shape
+    data_pad = np.zeros((y,x),dtype=np.complex_)
+    center_y = y//2 #defining the center of image in x and y direction
+    center_x = x//2
+    startx = center_x-(x//(factor*2))  
+    starty = center_y-(y//(factor*2))
+    
+    arr = fshift[starty:starty+(y//factor),startx:startx+(x//factor)]
+    if pad:
+        data_pad[starty:starty+(y//factor),startx:startx+(x//factor)] = arr
+        img_reco_cropped = np.fft.ifft2(np.fft.ifftshift(data_pad))
+    else:
+        img_reco_cropped = np.fft.ifft2(np.fft.ifftshift(arr)) 
+    return np.abs(img_reco_cropped )
