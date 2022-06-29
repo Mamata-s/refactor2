@@ -54,7 +54,7 @@ def set_val_dir(opt=None,dataset_name=None,factor=None,dataset_size=None):
             opt.val_image_dir,opt.val_label_dir = get_val_dir(opt.dataset_name,opt.factor,opt.dataset_size)
         return 1
     else:
-        val_image_dir,val_label_dir = get_val_dir(opt.dataset_name,opt.factor,opt.dataset_size)
+        val_image_dir,val_label_dir = get_val_dir(dataset_name,factor,dataset_size)
         return val_image_dir,val_label_dir
 
 def get_val_dir(dataset_name=None,factor=None,dataset_size=None):
@@ -62,9 +62,11 @@ def get_val_dir(dataset_name=None,factor=None,dataset_size=None):
     val_label_dir = '{}/{}/label/val'.format(dataset_size,dataset_name) 
     return val_image_dir,val_label_dir
 
-def get_patch_val_dir(dataset_size,patch_size,factor):
-    val_image_dir= '{}/patch/patch-{}/factor_{}/val'.format(dataset_size,patch_size,factor)
-    val_label_dir='{}/patch/patch-{}/label/val'.format(dataset_size,patch_size,factor)
+def get_patch_val_dir(dataset_size,patch_size=96,factor=2):
+    # val_image_dir= '{}/patch/patch-{}/factor_{}/val'.format(dataset_size,patch_size,factor)
+    # val_label_dir='{}/patch/patch-{}/label/val'.format(dataset_size,patch_size,factor)
+    val_image_dir = '{}/z_axis/factor_{}/val'.format(dataset_size,factor)
+    val_label_dir = '{}/z_axis/label/val'.format(dataset_size) 
     return val_image_dir,val_label_dir
 
 
