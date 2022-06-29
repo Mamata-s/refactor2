@@ -177,7 +177,6 @@ def save_results_edges(model,path,opt):
         else:
             print(f'edge type {opt.edge_type} not implemented')
 
-        print(scores)
         # display images as subplots
         fig, axs = plt.subplots(1, 7, figsize=(20, 8))
         axs[0].imshow(ref,cmap='gray')

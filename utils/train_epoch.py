@@ -16,19 +16,32 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
     with tqdm(total=(len(train_dataset) - len(train_dataset) % opt.train_batch_size), ncols=80) as t:
         t.set_description('epoch: {}/{}'.format(epoch, opt.num_epochs - 1))
 
-        for idx, (images, labels,edges_lr) in enumerate(train_dataloader):
-            images = images.to(opt.device)
-            labels = labels.to(opt.device)
-            edges_lr = edges_lr.to(opt.device)
+        for idx, (data) in enumerate(train_dataloader):
+            images = data['image'].to(opt.device)
+            labels = data['label'].to(opt.device)
+            edges_lr = data['lr_edges'].to(opt.device)
+
             label_error_map = labels-images
             preds = model(edges_lr)
+
+            if opt.apply_mask:
+                mask = data['mask'].to(opt.device)
+                label_error_map = mask*label_error_map
+                preds = mask *preds
+
             outs = preds+images
+
+            if opt.apply_mask:
+                outs = outs* mask
 
             if loss_type in ['addition']:
                 loss = criterion(outs, labels)
             else:
                 loss = criterion(preds, label_error_map)
-            preds = min_max_normalize(preds)
+
+            # preds = min_max_normalize(preds)
+
+
             # epoch_losses.update(loss.item(), len(images))
             update_epoch_losses(epoch_losses, count=len(images),values=[loss.item()])
             
@@ -60,10 +73,10 @@ def validate_edges(opt,model, dataloader,criterion=nn.MSELoss()):
     l1_loss = nn.L1Loss()
     count,psnr,ssim,loss,l1,hfen = 0,0,0,0,0,0
     with torch.no_grad():
-        for image,label,edges_lr in dataloader:  #batch size is always 1 to calculate psnr and ssim
-            image = image.to(opt.device)
-            label = label.to(opt.device)
-            edges_lr = edges_lr.to(opt.device)
+        for data in dataloader:  #batch size is always 1 to calculate psnr and ssim
+            image = data['image'].to(opt.device)
+            label = data['label'].to(opt.device)
+            edges_lr = data['lr_edges'].to(opt.device)
             label_edges = label-image
             output = model(edges_lr)
 

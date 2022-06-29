@@ -2,27 +2,28 @@ import os
 
 # DONE
 # # ******* Get result of  downsample edges with losstype original ie loss calculate on edges
-model_name= 'dense'
-factor=2
-checkpoint='outputs/resolution_dataset50/srdense/SRDENSE_GR7NB5NL5S4_DOWNSAMPLE_EDGES_MSE_ADAM_F2_LR0.001_FULL50_EP5005_initNorm/checkpoints/full/factor_2/epoch_5000_f_2.pth'
-plot_dir='test_set/plots_2/'
-preds_dir='test_set/preds_2/'
-edge_type='downsample'
-pred_edges_dir='test_set/preds_edges_2/'
-input_edges_dir='test_set/input_edges_2/'
-os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
-
-
-#***************Get the result of downsample edges patch with loss type addition on edges
 # model_name= 'dense'
 # factor=2
-# checkpoint='outputs/resolution_dataset50/srdense/PATCH_SRDENSE_NB5_KAI_NE605_BS32_LR0.0005_P96_F2_ADAM_MSE_NEPOCH5005_ltypeADD/checkpoints/patch/patch-96/factor_2/epoch_200_f_2.pth'
+# checkpoint='outputs/resolution_dataset50/srdense/SRDENSE_GR7NB5NL5S4_DOWNSAMPLE_EDGES_MSE_ADAM_F2_LR0.001_FULL50_EP5005_initNorm/checkpoints/full/factor_2/epoch_5000_f_2.pth'
 # plot_dir='test_set/plots_2/'
 # preds_dir='test_set/preds_2/'
 # edge_type='downsample'
 # pred_edges_dir='test_set/preds_edges_2/'
 # input_edges_dir='test_set/input_edges_2/'
 # os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+
+
+#***************Get the result of downsample edges patch with loss type addition on edges
+model_name= 'dense'
+factor=2
+checkpoint='outputs/resolution_dataset50/srdense/dense_z_axis_mask_training/checkpoints/z_axis/factor_2/epoch_18_f_2.pth'
+# checkpoint='outputs/resolution_dataset50/srdense/PATCH_SRDENSE_NB5_KAI_NE605_BS32_LR0.0005_P96_F2_ADAM_MSE_NEPOCH5005_ltypeADD/checkpoints/patch/patch-96/factor_2/epoch_200_f_2.pth'
+plot_dir='test_set/plots_2/'
+preds_dir='test_set/preds_2/'
+edge_type='downsample'
+pred_edges_dir='test_set/preds_edges_2/'
+input_edges_dir='test_set/input_edges_2/'
+os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
 
 
 
