@@ -20,29 +20,31 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
             images = data['image'].to(opt.device)
             labels = data['label'].to(opt.device)
             edges_lr = data['lr_edges'].to(opt.device)
+            mask = data['mask'].to(opt.device)
 
             label_error_map = labels-images
             preds = model(edges_lr)
 
             if opt.apply_mask:
-                mask = data['mask'].to(opt.device)
-                label_error_map = mask*label_error_map
-                preds = mask *preds
+                label_error_map_mask = mask * label_error_map
+                preds_mask = mask * preds
 
-            outs = preds+images
+                outs_m = preds_mask + images
+                output = outs_m * mask
+                
+                if loss_type in ['addition']:
+                    loss = criterion(output, labels)
+                else:
+                    loss = criterion(preds_mask, label_error_map_mask)
 
-            if opt.apply_mask:
-                outs = outs* mask
-
-            if loss_type in ['addition']:
-                loss = criterion(outs, labels)
             else:
-                loss = criterion(preds, label_error_map)
+                output = preds+images
+                if loss_type in ['addition']:
+                    loss = criterion(output, labels)
+                else:
+                    loss = criterion(preds, label_error_map)
 
-            # preds = min_max_normalize(preds)
-
-
-            # epoch_losses.update(loss.item(), len(images))
+        
             update_epoch_losses(epoch_losses, count=len(images),values=[loss.item()])
             
             optimizer.zero_grad()
@@ -60,11 +62,12 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
             # torch.save(model.state_dict(), os.path.join(config['outputs_dir'], 'epoch_{}_f_{}.pth'.format(epoch,args.factor)))
     return {'epoch':epoch,
             'hr': labels,
-            'final_output':outs,
+            'final_output':output,
             'lr':images,
             'label_edges':label_error_map,
             'pred_edges': preds,
-            'input_edges':edges_lr
+            'input_edges':edges_lr,
+            'mask':mask
     }
 
 
@@ -86,15 +89,19 @@ def validate_edges(opt,model, dataloader,criterion=nn.MSELoss()):
             l1 += l1_loss(output,label)
             count += len(label)
             output = output.clamp(0.0,1.0)
-            output = output.squeeze().detach().to('cpu').numpy()
-            # outputs = min_max_normalize(outputs)
-            image = image.squeeze().to('cpu').numpy()
-            label = label.squeeze().detach().to('cpu').numpy()
 
-            psnr += peak_signal_noise_ratio(output, label)
-            ssim += structural_similarity(output, label)
+            #psnr and ssim using tensor
+            psnr += opt.psnr(output, label)
+            ssim += opt.ssim(output,label)
+
+            # old
+            output = output.squeeze().detach().to('cpu').numpy()
+            # image = image.squeeze().to('cpu').numpy()
+            label = label.squeeze().detach().to('cpu').numpy()
+            # psnr += peak_signal_noise_ratio(output, label)
+            # ssim += structural_similarity(output, label)
             hfen += hfen_error(output, label)
-    return loss.item()/count, l1.item()/count,psnr.item()/count, ssim.item()/count,hfen.item()/count
+    return loss.item()/count, l1.item()/count,psnr.item()/count, ssim.item()/count,hfen/count
 
 
 
@@ -152,14 +159,19 @@ def validate_srdense_3d(opt,model, dataloader,criterion=nn.MSELoss(),addition=Fa
                 l1 += l1_loss(output[:,:,i,:,:],label[:,:,i,:,:])
                 count += 1
                 output = output.clamp(0.0,1.0)
-                output = output[:,:,i,:,:].squeeze().detach().to('cpu').numpy()
-                # outputs = min_max_normalize(outputs)
-                image = image[:,:,i,:,:].squeeze().to('cpu').numpy()
-                label = label[:,:,i,:,:].squeeze().detach().to('cpu').numpy()
 
-                psnr += peak_signal_noise_ratio(output, label)
-                ssim += structural_similarity(output, label)
+                #psnr ssim using tensor
+                psnr += opt.psnr(output[:,:,i,:,:], label[:,:,i,:,:]).item()
+                ssim += opt.ssim(output[:,:,i,:,:],label[:,:,i,:,:]).item()
+
+                # old
+                output = output[:,:,i,:,:].squeeze().detach().to('cpu').numpy()
+                # image = image[:,:,i,:,:].squeeze().to('cpu').numpy()
+                label = label[:,:,i,:,:].squeeze().detach().to('cpu').numpy()
+                # psnr += peak_signal_noise_ratio(output, label)
+                # ssim += structural_similarity(output, label)
                 hfen += hfen_error(output, label)
+
     return loss.item()/count, l1.item()/count,psnr.item()/count, ssim.item()/count,hfen.item()/count
 
 
@@ -182,13 +194,17 @@ def validate_srdense(opt,model, dataloader,criterion=nn.MSELoss(),addition=False
             l1 += l1_loss(output,label)
             count += len(label)
             output = output.clamp(0.0,1.0)
-            output = output.squeeze().detach().to('cpu').numpy()
-            # outputs = min_max_normalize(outputs)
-            image = image.squeeze().to('cpu').numpy()
-            label = label.squeeze().detach().to('cpu').numpy()
 
-            psnr += peak_signal_noise_ratio(output, label)
-            ssim += structural_similarity(output, label)
+            #psnr and ssim using tensor
+            psnr += opt.psnr(output, label).item()
+            ssim += opt.ssim(output,label).item()
+
+
+            output = output.squeeze().detach().to('cpu').numpy()
+            # image = image.squeeze().to('cpu').numpy()
+            label = label.squeeze().detach().to('cpu').numpy()
+            # psnr += peak_signal_noise_ratio(output, label)
+            # ssim += structural_similarity(output, label)
             hfen += hfen_error(output, label)
     return loss.item()/count, l1.item()/count,psnr.item()/count, ssim.item()/count,hfen.item()/count
 
@@ -209,13 +225,15 @@ def validate_patch_gan(opt,model, dataloader,criterion=nn.MSELoss()):
             count += len(label)
             output = output.clamp(0.0,1.0)
 
-            output = output.squeeze().detach().to('cpu').numpy()
-            # outputs = min_max_normalize(outputs)
-            image = image.squeeze().to('cpu').numpy()
-            label = label.squeeze().detach().to('cpu').numpy()
+            #psnr and ssim using tensor
+            psnr += opt.psnr(output, label).item()
+            ssim += opt.ssim(output,label).item()
 
-            psnr += peak_signal_noise_ratio(output, label)
-            ssim += structural_similarity(output, label)
+            output = output.squeeze().detach().to('cpu').numpy()
+            # image = image.squeeze().to('cpu').numpy()
+            label = label.squeeze().detach().to('cpu').numpy()
+            # psnr += peak_signal_noise_ratio(output, label)
+            # ssim += structural_similarity(output, label)
             hfen += hfen_error(output, label)
     return loss.item()/count, l1.item()/count,psnr.item()/count, ssim.item()/count,hfen.item()/count
     
@@ -233,8 +251,6 @@ def train_epoch_patch_gan(opt,model,train_dl, epoch, epoch_losses):
                 os.makedirs(opt.checkpoints_dir)
         path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
         model.save(model.state_dict(),opt,path,epoch)
-        # path = os.path.join(opt.checkpoints_dir, 'full_model_epoch_{}_f_{}.pth'.format(epoch,opt.factor))
-        # torch.save(model.state_dict(), path)
     with torch.no_grad():
         preds = model.net_G(images.to(opt.device)).to(opt.device)
     return images, preds, labels

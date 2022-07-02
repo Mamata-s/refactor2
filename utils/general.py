@@ -116,6 +116,8 @@ def save_configuration(opt,save_name='configuration'):
         os.makedirs(opt.loss_dir)
     save_path=os.path.join(opt.loss_dir,save_name)
     opt.device = 'cuda'
+    opt.psnr ='psnr'
+    opt.ssim = 'ssim'
     with open(save_path,"wb") as fp:
         pickle.dump(opt,fp)
     return save_path 
@@ -125,6 +127,8 @@ def save_configuration_yaml(opt,save_name='configuration.yaml'):
         os.makedirs(opt.loss_dir)
     save_path = os.path.join(opt.loss_dir,save_name)
     opt.device = 'cuda'
+    opt.psnr ='psnr'
+    opt.ssim = 'ssim'
     with open(save_path, 'w') as f:
         json.dump(opt.__dict__, f, indent=2)
     return save_path
@@ -207,6 +211,7 @@ class LogEdgesOutputs():
         self.label_edges_list=[]
         self.pred_edges_list = []
         self.input_edges_list = []
+        self.mask_list =[]
 
     def append_list(self,output_dict):
     # def append_list(self,epoch,hr,final_output,lr,label_edges):
@@ -219,6 +224,8 @@ class LogEdgesOutputs():
         self.label_edges_list.append(preprocess(output_dict['label_edges'][0],normalize=True))
         self.pred_edges_list.append(preprocess(output_dict['pred_edges'][0],normalize=True))
         self.input_edges_list.append(preprocess(output_dict['input_edges'][0],normalize=True))
+        if output_dict['mask'] is not None:
+            self.mask_list.append(preprocess(output_dict['mask'][0]))
 
     def log_images(self,columns=["epoch","hr","final output", "lr", "label edges","pred edges","input edges"],wandb=None):
         columns=["epoch","hr","final output", "lr", "label edges","pred edges","input edges"]
@@ -232,6 +239,22 @@ class LogEdgesOutputs():
              wandb.Image(label_edges),
              wandb.Image(pred_edges),
              wandb.Image(input_edges),
+             )
+        wandb.log({"outputs_table":table}, commit=False)
+
+    def log_images_and_mask(self,columns=["epoch","hr","final output", "lr", "label edges","pred edges","input edges","mask"],wandb=None):
+        columns=["epoch","hr","final output", "lr", "label edges","pred edges","input edges","mask"]
+        table = wandb.Table(columns=columns)
+        for epoch,hr,final_output,lr,label_edges,pred_edges,input_edges,mask in zip(self.epoch_list,self.hr_list,self.final_output_list,self.lr_list,self.label_edges_list,self.pred_edges_list,self.input_edges_list,self.mask_list):
+        # for epoch,hr,final_output,lr in zip(self.epoch_list,self.hr_list,self.final_output_list,self.lr_list,self.label_edges_list):
+            table.add_data(epoch,
+             wandb.Image(hr),
+             wandb.Image(final_output),
+             wandb.Image(lr),
+             wandb.Image(label_edges),
+             wandb.Image(pred_edges),
+             wandb.Image(input_edges),
+             wandb.Image(mask)
              )
         wandb.log({"outputs_table":table}, commit=False)
 

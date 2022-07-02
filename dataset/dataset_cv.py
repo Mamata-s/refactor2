@@ -403,9 +403,9 @@ class MRIDatasetEdges(Dataset):
         label_path = os.path.join(self.label_dir, self.dir_dict[dict_key])
 
         image = cv2.imread(img_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY).astype(np.float32)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         label = cv2.imread(label_path)
-        label = cv2.cvtColor(label, cv2.COLOR_BGR2GRAY).astype(np.float32)
+        label = cv2.cvtColor(label, cv2.COLOR_BGR2GRAY)
 
         image_blur = cv2.GaussianBlur(image, (5,5), 0) 
         lr_edges = cv2.Canny(image = image_blur, threshold1=1, threshold2=20) # Canny Edge Detection
@@ -420,8 +420,8 @@ class MRIDatasetEdges(Dataset):
         self.create_mask(label)
 
 
-        image = image / 255.
-        label = label / 255.
+        image = image.astype(np.float32)/ 255.
+        label = label.astype(np.float32) / 255.
         lr_edges = lr_edges.astype(np.float32) / 255.
 
 
@@ -453,6 +453,8 @@ class MRIDatasetEdges(Dataset):
                 'lr_edges':lr_edges,
                 'mask':self.mask
                 }
+
+
 
 
 

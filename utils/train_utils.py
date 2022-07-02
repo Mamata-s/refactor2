@@ -135,7 +135,7 @@ def load_dataset_edges(opt):
 
 
 def load_train_dataset_edges(opt):
-    train_datasets = MRIDatasetEdges(opt.train_image_dir, opt.train_label_dir,size=opt.size)
+    train_datasets = MRIDatasetEdges(opt.train_image_dir, opt.train_label_dir,size=opt.size,apply_mask=opt.apply_mask)
     sampler = RdnSampler(train_datasets,opt.train_batch_size,True,classes=train_datasets.classes())
     train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,sampler = sampler,shuffle=False,
         num_workers=1,pin_memory=False,drop_last=False)

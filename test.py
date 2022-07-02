@@ -111,8 +111,7 @@ def predict_downsample_edges(model,path,factor,device,psnr,ssim):
 
     # didnt work (a lot of noise in input edges and not structure preserved)
     # downsample = crop_pad_kspace(degraded,pad=True,factor=2)
-    # downsample = min_max_normalize(downsample)*255.
-    # downsample = downsample.astype(np.uint8).astype(np.float32)
+
     # downsample = cv2.imread(os.path.join(downsample_path,file))
     # downsample = cv2.cvtColor(downsample, cv2.COLOR_BGR2GRAY).astype(np.float32)
 

@@ -6,6 +6,7 @@ import sys
 from utils.train_utils import load_dataset,load_model,get_criterion,get_optimizer
 import torch
 import torch.nn as nn
+from utils.image_quality_assessment import PSNR,SSIM
 import copy
 from utils.logging_metric import LogMetric,create_loss_meters_srdense
 from utils.train_utils import adjust_learning_rate,load_dataset_edges,load_dataset_downsample_edges
@@ -41,7 +42,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
         epoch_losses = create_loss_meters_srdense()  #create a dictionary
         output_dict = train_epoch_edges(opt,model,criterion,optimizer,train_datasets,train_dataloader,epoch,epoch_losses,loss_type=opt.loss_type)
         eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen = validate_edges(opt,model, eval_dataloader,criterion)
-
+    
         # apply_model_edges(model,epoch,opt)
 
         if opt.wandb:
@@ -74,7 +75,10 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
         metric_dict.update_dict([epoch_losses['train_loss'].avg])  
 
     if opt.wandb:
-        log_table_output.log_images(columns = ["epoch","image", "pred", "label"],wandb=wandb)
+        if opt.apply_mask:
+            log_table_output.log_images_and_mask(wandb=wandb)
+        else:
+            log_table_output.log_images(wandb=wandb)
 
     path = metric_dict.save_dict(opt)
     _ = save_configuration_yaml(opt)
@@ -87,7 +91,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/dense_mask_downedges_f2_z_axis25.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/mask_training/canny_edges_addition_f2_zaxis25.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 
@@ -112,12 +116,12 @@ if __name__ == "__main__":
     #      check=False
     # if check: opt.addition=False
 
-    '''Set the addition argument value for edges training'''
-    check=True
-    for arg in vars(opt):
-     if arg in ['edges_training']:
-         check=False
-    if check: opt.edges_training=False
+    # '''Set the addition argument value for edges training'''
+    # check=True
+    # for arg in vars(opt):
+    #  if arg in ['edges_training']:
+    #      check=False
+    # if check: opt.edges_training=False
 
 
     set_val_dir(opt)  #setting the training dataset dir
@@ -127,7 +131,7 @@ if __name__ == "__main__":
     if opt.edge_type in ['canny']:
         train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset_edges(opt)
     elif opt.edge_type in ['downsample']:
-        set_downsample_train_val_dir(opt)
+        # set_downsample_train_val_dir(opt)
         train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset_downsample_edges(opt)
 
     '''get the epoch image path to save the image output of every epoch for given single image'''
@@ -151,6 +155,13 @@ if __name__ == "__main__":
 
     # print(opt)
     # quit();
+
+    #setting metric for evaluation
+    psnr = PSNR()
+    ssim = SSIM()
+    opt.psnr = psnr.to(device=opt.device, memory_format=torch.channels_last, non_blocking=True)
+    opt.ssim = ssim.to(device=opt.device, memory_format=torch.channels_last, non_blocking=True)
+
 
     '''wrap model for data parallelism'''
     num_of_gpus = torch.cuda.device_count()

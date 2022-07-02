@@ -6,6 +6,7 @@ import sys
 from utils.train_utils import load_dataset,load_model,get_criterion,get_optimizer
 import torch
 import torch.nn as nn
+from utils.image_quality_assessment import PSNR,SSIM
 import copy
 from utils.logging_metric import LogMetric,create_loss_meters_srdense
 from utils.train_utils import adjust_learning_rate
@@ -176,6 +177,12 @@ if __name__ == "__main__":
 
     '''initialize the logging dictionary'''
     metric_dict = LogMetric( { 'train_loss' : [],'epoch':[]})
+
+    #setting metric for evaluation
+    psnr = PSNR()
+    ssim = SSIM()
+    opt.psnr = psnr.to(device=opt.device, memory_format=torch.channels_last, non_blocking=True)
+    opt.ssim = ssim.to(device=opt.device, memory_format=torch.channels_last, non_blocking=True)
 
 
     if opt.wandb:

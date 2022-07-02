@@ -13,18 +13,6 @@ from torchvision.transforms import functional as F
 import cv2
 from typing import Any
 
-def calc_patch_size(func):
-    def wrapper(args):
-        if args.scale == 2:
-            args.patch_size = 10
-        elif args.scale == 3:
-            args.patch_size = 7
-        elif args.scale == 4:
-            args.patch_size = 6
-        else:
-            raise Exception('Scale Error', args.scale)
-        return func(args)
-    return wrapper
 
 
 def calc_psnr(img1, img2):
