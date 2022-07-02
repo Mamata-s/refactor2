@@ -2,7 +2,7 @@
 
 
 model_name: 'srdense'
-exp_name: 'dense_canny_z_axis25_mask_training_original_f2_155_0.0001'
+exp_name: 'dense_canny_z_axis25_mask_training_original_f4_125_0.0001'
 edge_type: 'canny'  #options: canny, downsample. if downsample provide opt.downsample_train_dir and opt.downsample_val_dir also
 loss_type: 'original'  #options addition, original: with addition loss is calculated after addition
  #for addition mse is calculate after adding edges and loss calculated between (image and label image) else loss cal between edges
@@ -18,7 +18,7 @@ size: 25
 dataset_name: 'z_axis'
 
 #training
-num_epochs: 155
+num_epochs: 125
 num_workers: 8
 seed: 123
 original_lr: 0.0001
@@ -28,7 +28,7 @@ n_freq: 30 # model checkpoint saving frequency
 train_batch_size: 8
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 # opt.device: cpu or gpu during training
-factor: 2
+factor: 4
 
 
 
@@ -52,5 +52,5 @@ weights_file: None
 scale: 4
 patch: False
 
-note: 'Training srdense net for predicting the edges by providing canny edges the input using masking while calculating loss'
+note: 'Training srdense net for predicting the edges by providing canny edges the input using masking while calculating loss and adjusting learning rate on every 30th  and 50 th epoch'
 

@@ -91,7 +91,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/mask_training/canny_edges_addition_f2_zaxis25.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/mask_training/canny_edges_original_f2_zaxis25.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 
@@ -147,6 +147,8 @@ if __name__ == "__main__":
 
     '''print model'''
     print(model)
+
+    print(opt)
 
     '''setup the outputs and logging metric dirs on '''
     set_outputs_dir(opt) 
