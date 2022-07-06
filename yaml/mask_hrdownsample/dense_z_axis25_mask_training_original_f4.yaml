@@ -2,7 +2,7 @@
 
 
 model_name: 'srdense'
-exp_name: 'dense_downsample_z_axis25_mask_training_original_f4_805_0.0001_debug'
+exp_name: 'dense_downsample_z_axis25_mask_training_original_f4_805_0.0001'
 edge_type: 'downsample'  #options: canny, downsample. if downsample provide opt.downsample_train_dir and opt.downsample_val_dir also
 loss_type: 'original'  #options addition, original: with addition loss is calculated after addition
  #for addition mse is calculate after adding edges and loss calculated between (image and label image) else loss cal between edges
@@ -37,9 +37,9 @@ mask_threshold: 25
 
 #srdense
 criterion: mse
-optimizer: adam
-# momentum: 
-# weight_decay:
+optimizer: sgd
+momentum: 0.9
+weight_decay: 0
 
 
 init: 'norm' 
@@ -51,5 +51,5 @@ weights_file: None
 scale: 4
 patch: False
 
-note: 'Training srdense net for predicting the edges by providing difference between lr and its downsample version as the input using masking while calculating loss'
+note: 'Training srdense net for predicting the edges by providing difference between lr_x and lr_2x as the input using masking while calculating loss'
 

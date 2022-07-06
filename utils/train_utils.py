@@ -126,8 +126,10 @@ def get_criterion(opt):
 def get_optimizer(opt,model):
     if opt.optimizer in ['adam']:
         optimizer = optim.Adam(model.parameters(), lr=opt.lr)
+        print('Using ADAm Optimizer')
         return optimizer
     elif opt.optimizer in ['sgd']:
+        print('Using SGD Optimizer')
         optimizer = optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
         return optimizer
     else:
@@ -181,12 +183,12 @@ def load_train_dataset_downsample_edges(opt):
 
 def load_eval_dataset_downsample_edges(opt):
     if opt.patch:
-        val_datasets = MRIDatasetPatchDownsampleEdges(opt.val_image_dir, opt.val_label_dir,factor=opt.factor,threshold=opt.mask_threshold,apply_mask=False)
+        val_datasets = MRIDatasetPatchDownsampleEdges(opt.val_image_dir, opt.val_label_dir,opt.downsample_val_dir,threshold=opt.mask_threshold,apply_mask=False)
         # val_datasets = MRIDatasetPatchDownsampleEdges(opt.val_image_dir, opt.val_label_dir,opt.downsample_val_dir)
         eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size, shuffle=True,
             num_workers=8,pin_memory=False,drop_last=False)
     else:
-        val_datasets = MRIDatasetDownsampleEdges(opt.val_image_dir, opt.val_label_dir,factor=opt.factor,size=opt.size,threshold=opt.mask_threshold,apply_mask=False)
+        val_datasets = MRIDatasetDownsampleEdges(opt.val_image_dir, opt.val_label_dir,opt.downsample_val_dir,size=opt.size,threshold=opt.mask_threshold,apply_mask=False)
         # val_datasets = MRIDatasetDownsampleEdges(opt.val_image_dir, opt.val_label_dir,opt.downsample_val_dir,size=opt.size)
         val_sampler = RdnSampler(val_datasets,opt.val_batch_size,True,classes=val_datasets.classes())
         eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size,sampler = val_sampler,shuffle=False,
