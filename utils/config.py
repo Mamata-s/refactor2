@@ -36,12 +36,13 @@ def set_downsample_train_dir(opt):
     if opt.patch:
         opt.downsample_train_dir,_ = get_patch_train_dir(opt.dataset_size,opt.patch_size,opt.factor+2)
     else:
-        opt.downsample_train_dir,_ = get_train_dir(opt.patch,opt.dataset_size,opt.dataset_name,opt.factor+2)
+        opt.downsample_train_dir,_ = get_train_dir(opt.dataset_size,opt.dataset_name,opt.factor+2)
     return 1
 
 def set_downsample_val_dir(opt):
     if opt.patch:
-        opt.downsample_val_dir,_ = get_patch_val_dir(dataset_size=opt.dataset_size,patch_size=opt.patch_size,factor=opt.factor+2)       
+        opt.downsample_val_dir,_ = get_patch_val_dir(dataset_size=opt.dataset_size,factor=opt.factor+2)     
+        # opt.downsample_val_dir,_ = get_patch_val_dir(dataset_size=opt.dataset_size,patch_size=opt.patch_size,factor=opt.factor+2)       
     else:
         opt.downsample_val_dir,_ = get_val_dir(dataset_name=opt.dataset_name,factor=opt.factor+2,dataset_size=opt.dataset_size)
     return 1  
