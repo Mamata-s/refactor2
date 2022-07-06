@@ -31,9 +31,10 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
 
                 outs_m = preds_mask + images
                 output = outs_m * mask
+                label_m = labels * mask
                 
                 if loss_type in ['addition']:
-                    loss = criterion(output, labels)
+                    loss = criterion(output, label_m)
                 else:
                     loss = criterion(preds_mask, label_error_map_mask)
 

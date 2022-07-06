@@ -13,17 +13,18 @@ project_name: 'super_resolution'
 wandb: True 
 
 #dataset
-dataset_size: resolution_dataset50
-size: 50
+dataset_size: resolution_dataset25
+size: 25
 dataset_name: 'z_axis'
 
 #training
-num_epochs: 10
+num_epochs: 105
 num_workers: 8
 seed: 123
+original_lr: 0.0001
 lr: 0.0001
-lr_decay_factor: 0.9  #lr is decay by 10% after every 150th or 250th epoch
-n_freq: 1 # model checkpoint saving frequency
+lr_decay_factor: 0.5  #lr is decay by 10% after every 150th or 250th epoch
+n_freq: 20 # model checkpoint saving frequency
 train_batch_size: 8
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 # opt.device: cpu or gpu during training
@@ -38,7 +39,7 @@ mask_threshold: 25
 #srdense
 criterion: 'mse'
 optimizer: 'sgd'
-momentum: 0.9
+momentum: 0.999
 weight_decay: 0
 
 

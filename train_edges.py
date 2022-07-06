@@ -91,7 +91,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/mask_training/canny_edges_original_f2_zaxis25.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/mask_training/canny_edges_original_f4_zaxis25.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     if opt.edge_type in ['canny']:
         train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset_edges(opt)
     elif opt.edge_type in ['downsample']:
-        # set_downsample_train_val_dir(opt)
+        set_downsample_train_val_dir(opt)
         train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset_downsample_edges(opt)
 
     '''get the epoch image path to save the image output of every epoch for given single image'''

@@ -6,6 +6,7 @@ from PIL import Image
 import numpy as np 
 import wandb
 import json
+import torch.nn as nn
 
 def unpickle(file):
     with open(file, 'rb') as fo:
@@ -269,3 +270,17 @@ def read_pickle(path):
     with open(path, 'rb') as f:
         x = pickle.load(f)
     return x
+
+
+class NRMSELoss(nn.Module):
+    def __init__(self, eps=1e-6):
+        super().__init__()
+        self.mse = nn.MSELoss(reduction='sum')
+        self.eps = eps
+        
+    def forward(self,y,yhat):
+        numerator = torch.sqrt(self.mse(yhat,y) + self.eps)
+        zeros = torch.zeros(y.shape).to(y.get_device())
+        denominator = torch.sqrt(self.mse(y,zeros)+self.eps)
+        loss = numerator/denominator
+        return loss

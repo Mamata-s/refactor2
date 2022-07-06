@@ -166,16 +166,16 @@ def load_dataset_downsample_edges(opt):
 
 def load_train_dataset_downsample_edges(opt):
     if opt.patch:
-        train_datasets = MRIDatasetPatchDownsampleEdges(opt.train_image_dir, opt.train_label_dir,factor=opt.factor,threshold=opt.mask_threshold,apply_mask=opt.apply_mask)
-        # train_datasets = MRIDatasetPatchDownsampleEdges(opt.train_image_dir, opt.train_label_dir,opt.downsample_train_dir)
+        # train_datasets = MRIDatasetPatchDownsampleEdges(opt.train_image_dir, opt.train_label_dir,factor=opt.factor,threshold=opt.mask_threshold,apply_mask=opt.apply_mask)
+        train_datasets = MRIDatasetPatchDownsampleEdges(opt.train_image_dir, opt.train_label_dir,opt.downsample_train_dir,threshold=opt.mask_threshold,apply_mask=opt.apply_mask)
         train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,shuffle=True,
             num_workers=8,pin_memory=False,drop_last=False)
     else:
-        train_datasets = MRIDatasetDownsampleEdges(opt.train_image_dir, opt.train_label_dir,factor=opt.factor,size=opt.size,threshold=opt.mask_threshold,apply_mask=opt.apply_mask)
-        # train_datasets = MRIDatasetDownsampleEdges(opt.train_image_dir, opt.train_label_dir,opt.downsample_train_dir,size=opt.size)
+        # train_datasets = MRIDatasetDownsampleEdges(opt.train_image_dir, opt.train_label_dir,factor=opt.factor,size=opt.size,threshold=opt.mask_threshold,apply_mask=opt.apply_mask)
+        train_datasets = MRIDatasetDownsampleEdges(opt.train_image_dir, opt.train_label_dir,opt.downsample_train_dir,size=opt.size,threshold=opt.mask_threshold,apply_mask=opt.apply_mask)
         sampler = RdnSampler(train_datasets,opt.train_batch_size,True,classes=train_datasets.classes())
         train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,sampler = sampler,shuffle=False,
-            num_workers=1,pin_memory=False,drop_last=False)
+            num_workers=8,pin_memory=False,drop_last=False)
    
     return train_dataloader,train_datasets
 
