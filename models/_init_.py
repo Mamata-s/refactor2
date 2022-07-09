@@ -4,3 +4,4 @@ from .unet import *
 from .dense3d import *
 from .rrdbnet import *
 from .rrdbnet3d import *
+from .densenet_spectral import *

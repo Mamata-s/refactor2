@@ -133,7 +133,8 @@ import os
 # model_name= 'dense'
 # label_path ='resolution_dataset25/z_axis/label/test'
 # factor= 4
-# checkpoint='outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_original_f4_125_0.0001/checkpoints/z_axis/factor_4/epoch_120_f_4.pth'
+# checkpoint = 'outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_original_f4_125_0.0001_gaussian_maskingcorr/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+# # checkpoint='outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_original_f4_125_0.0001/checkpoints/z_axis/factor_4/epoch_120_f_4.pth'
 # edge_type='canny'
 # os.system(f"python eval.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --label-path={label_path} --edge-type={edge_type} ")
 
@@ -185,11 +186,11 @@ import os
 # os.system(f"python eval.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --label-path={label_path} --edge-type={edge_type} ")
 
 
-# #Downsample Edges Addition Factor 4 (not done)
+#Downsample Edges Addition Factor 4 (Done)
 # model_name= 'dense'
 # label_path ='resolution_dataset25/z_axis/label/test'
 # factor= 4
-# checkpoint='outputs/resolution_dataset25/srdense/dense_downsample_z_axis25_mask_training_addition_f2_105_0.0001/checkpoints/z_axis/factor_2/epoch_80_f_2.pth'
+# checkpoint = 'outputs/resolution_dataset25/srdense/dense_downsample_z_axis25_mask_training_addition_f4_805_0.0001/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
 # edge_type='downsample'
 # os.system(f"python eval.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --label-path={label_path} --edge-type={edge_type} ")
 
@@ -198,21 +199,22 @@ import os
 #***************************** TEST **********************************************************************************************************
 
 # # ******* Canny Edges Original factor 2 (Done)
-# model_name= 'dense'
-# factor=2
-# checkpoint='outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_original_f2_155_0.0001/checkpoints/z_axis/factor_2/epoch_150_f_2.pth'
-# plot_dir='test_set/plots_2/'
-# preds_dir='test_set/preds_2/'
-# edge_type='canny'
-# pred_edges_dir='test_set/preds_edges_2/'
-# input_edges_dir='test_set/input_edges_2/'
-# os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+model_name= 'dense'
+factor=2
+checkpoint='outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_original_f2_155_0.0001/checkpoints/z_axis/factor_2/epoch_150_f_2.pth'
+plot_dir='test_set/plots_2/'
+preds_dir='test_set/preds_2/'
+edge_type='canny'
+pred_edges_dir='test_set/preds_edges_2/'
+input_edges_dir='test_set/input_edges_2/'
+os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
 
 
-# # ******* Canny Edges Original factor 4 (Done)
+# ******* Canny Edges Original factor 4 (Done)
 # model_name= 'dense'
 # factor=4
-# checkpoint='outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_original_f4_125_0.0001/checkpoints/z_axis/factor_4/epoch_120_f_4.pth'
+# checkpoint = 'outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_original_f4_125_0.0001_gaussian_maskingcorr/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+# # checkpoint='outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_original_f4_125_0.0001/checkpoints/z_axis/factor_4/epoch_120_f_4.pth'
 # plot_dir='test_set/plots_4/'
 # preds_dir='test_set/preds_4/'
 # edge_type='canny'
@@ -233,15 +235,15 @@ import os
 # os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
 
 # ******* Canny Edges Addition factor 4 (Done)
-model_name= 'dense'
-factor=4
-checkpoint='outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_addition_f4_105_0.0001_sgd/checkpoints/z_axis/factor_4/epoch_80_f_4.pth'
-plot_dir='test_set/plots_4/'
-preds_dir='test_set/preds_4/'
-edge_type='canny'
-pred_edges_dir='test_set/preds_edges_4/'
-input_edges_dir='test_set/input_edges_4/'
-os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+# model_name= 'dense'
+# factor=4
+# checkpoint='outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_addition_f4_105_0.0001_sgd/checkpoints/z_axis/factor_4/epoch_80_f_4.pth'
+# plot_dir='test_set/plots_4/'
+# preds_dir='test_set/preds_4/'
+# edge_type='canny'
+# pred_edges_dir='test_set/preds_edges_4/'
+# input_edges_dir='test_set/input_edges_4/'
+# os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
 
 
 
@@ -281,4 +283,16 @@ os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} -
 # edge_type='downsample'
 # pred_edges_dir='test_set/preds_edges_2/'
 # input_edges_dir='test_set/input_edges_2/'
+# os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+
+
+# # Downsample Addition factor 4 (Done)
+# model_name= 'dense'
+# factor=4
+# checkpoint = 'outputs/resolution_dataset25/srdense/dense_downsample_z_axis25_mask_training_addition_f4_805_0.0001/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+# plot_dir=f'test_set/plots_{factor}/'
+# preds_dir=f'test_set/preds_{factor}/'
+# edge_type='downsample'
+# pred_edges_dir=f'test_set/preds_edges_{factor}/'
+# input_edges_dir=f'test_set/input_edges_{factor}/'
 # os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")

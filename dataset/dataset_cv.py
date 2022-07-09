@@ -530,11 +530,6 @@ class MRIDatasetDownsampleEdges(Dataset):
         downsample = cv2.imread(downsample_path)
         downsample = cv2.cvtColor(downsample, cv2.COLOR_BGR2GRAY).astype(np.float32)
 
-        # if self.isset_mask:
-        #     pass
-        # else:
-        #     print('mask created')
-        #     self.create_mask(label)
 
         self.create_mask(label)
 

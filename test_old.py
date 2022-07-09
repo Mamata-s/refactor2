@@ -27,10 +27,7 @@ import numpy as np
 
 import warnings
 warnings.filterwarnings("ignore")
-
-
-
-label_path ='resolution_dataset25/z_axis/label/test/'
+ 
 
 def save_array(path,array):
     f = open(path, "w")
@@ -41,14 +38,16 @@ def save_array(path,array):
 
 
 # define function that combines all three image quality metrics
-def compare_images(target, ref,psnr,ssim):
+def compare_images(target, ref,psnr,ssim): #all tensor should be between 0 and 1 range
     mse = nn.MSELoss()
     nrmse = NRMSELoss()
     scores = []
+    print('range of target', target.min(),target.max())
+    print('range of ref',ref.min(),ref.max())
     scores.append(psnr(target, ref).item())
     scores.append(mse(target, ref).item())
-    scores.append(ssim(target, ref).item())
     scores.append(nrmse(ref, target).item())
+    scores.append(ssim(target, ref).item())
     
     return scores
 
@@ -56,7 +55,7 @@ def make_downsample_images(opt):
     path_images = 'test_set/images/factor_{}'.format(opt.factor+2)
     if not os.path.exists(path_images):
         os.makedirs(path_images)
-    prepare_image_fourier(label_path,path_images,opt.factor+2)
+    prepare_image_fourier('test_set/labels',path_images,opt.factor+2)
     return path_images
 
 
@@ -66,10 +65,9 @@ def predict_canny_edges(model,path,factor,device,psnr,ssim):
     path, file = os.path.split(image_path)
     degraded = cv2.imread(image_path)
     degraded = cv2.cvtColor(degraded, cv2.COLOR_BGR2GRAY)
-    image_blur = cv2.GaussianBlur(degraded, (15,15), 0) 
+    image_blur = cv2.GaussianBlur(degraded, (5,5), 0) 
     lr_edges = cv2.Canny(image = image_blur, threshold1=1, threshold2=20)
-    ref_path = os.path.join(label_path,file)
-    ref = cv2.imread(ref_path)
+    ref = cv2.imread('test_set/labels/{}'.format(file))
     ref = cv2.cvtColor(ref, cv2.COLOR_BGR2GRAY)
 
     # label_edges = ref-degraded #not effective while plotting
@@ -84,7 +82,13 @@ def predict_canny_edges(model,path,factor,device,psnr,ssim):
     
     label_edges = ref-degraded 
     pre_edges = model(input_edges)
-    pre=pre_edges+degraded
+    pre = pre_edges+degraded
+
+    initial_baseline = degraded + input_edges
+
+    #added for correcting psnr and ssim
+    pre = pre.clamp(0., 1.)
+    initial_baseline = initial_baseline.clamp(0.,1.)
 
     print('Before normalization')
     print('range of prediction edges',pre_edges.min(),pre_edges.max())
@@ -96,9 +100,6 @@ def predict_canny_edges(model,path,factor,device,psnr,ssim):
     pre_edges= min_max_normalize(pre_edges)
 
     initial_baseline = degraded+input_edges
-
-    pre = pre.clamp(0.,1.)
-    initial_baseline = initial_baseline.clamp(0.,1.)
     
     # image quality calculations
     scores = []
@@ -120,16 +121,10 @@ def predict_downsample_edges(opt,model,path,factor,device,psnr,ssim):
     path, file = os.path.split(image_path)
     degraded = cv2.imread(image_path)
     degraded = cv2.cvtColor(degraded, cv2.COLOR_BGR2GRAY).astype(np.float32)
-    ref_path = os.path.join(label_path,file)
-    ref = cv2.imread(ref_path)
+    ref = cv2.imread('test_set/labels/{}'.format(file))
     ref = cv2.cvtColor(ref, cv2.COLOR_BGR2GRAY).astype(np.float32)
 
-    down_path = os.path.join(opt.downsample_path,file)
-    downsample = cv2.imread(down_path.format(file))
-    downsample = cv2.cvtColor(downsample, cv2.COLOR_BGR2GRAY).astype(np.float32)
-
-
-    # downsample = crop_pad_kspace(degraded,pad=True,factor=opt.factor+2).astype(np.float32) # working
+    downsample = crop_pad_kspace(degraded,pad=True,factor=opt.factor+2).astype(np.float32) # working
     
     degraded = degraded/255.
     ref = ref/255.
@@ -146,11 +141,12 @@ def predict_downsample_edges(opt,model,path,factor,device,psnr,ssim):
 
     # perform super-resolution with srcnn
     pre_edges = model(input_edges)
-    pre=pre_edges+degraded
+    pre = pre_edges+degraded
 
     initial_baseline = degraded + input_edges
 
-    pre = pre.clamp(0.,1.)
+    pre = pre.clamp(0., 1.)
+    # pre = (pre-pre.min())/(pre.max()-pre.min())x
     initial_baseline = initial_baseline.clamp(0.,1.)
 
     print('Before normalization')
@@ -159,6 +155,7 @@ def predict_downsample_edges(opt,model,path,factor,device,psnr,ssim):
     print('range of label edges',label_edges.min(),label_edges.max())
 
     pre_edges = min_max_normalize(pre_edges)
+
     input_edges= min_max_normalize(input_edges)
     label_edges = min_max_normalize(label_edges)
 
@@ -238,10 +235,10 @@ def save_results_edges(model,path,opt):
         
         print('Saving {}'.format(file))
         print(fig.savefig(opt.plot_dir+'{}.png'.format(os.path.splitext(file)[0])) )
-        # print(cv2.imwrite(opt.preds_dir+'{}.png'.format(os.path.splitext(file)[0]),output))
+        print(cv2.imwrite(opt.preds_dir+'{}.png'.format(os.path.splitext(file)[0]),output))
 
-        # print(cv2.imwrite(opt.pred_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),output_edges))
-        # print(cv2.imwrite(opt.input_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),input_edges))
+        print(cv2.imwrite(opt.pred_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),output_edges))
+        print(cv2.imwrite(opt.input_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),input_edges))
         plt.close()
 
 
@@ -258,9 +255,8 @@ def predict(model,path,factor,device,psnr,ssim):
     path, file = os.path.split(image_path)
     degraded = cv2.imread(image_path)
     degraded = cv2.cvtColor(degraded, cv2.COLOR_BGR2GRAY).astype(np.float32)
-    ref_path = os.path.join(label_path,file)
-    # ref = cv2.imread('test_set/labels/{}'.format(file))
-    ref = cv2.cvtColor(ref_path).astype(np.float32)
+    ref = cv2.imread('test_set/labels/{}'.format(file))
+    ref = cv2.cvtColor(ref, cv2.COLOR_BGR2GRAY).astype(np.float32)
 
     degraded = degraded/255.
     ref = ref/255.
@@ -354,8 +350,7 @@ if __name__ == '__main__':
     path_images = 'test_set/images/factor_{}'.format(opt.factor)
     if not os.path.exists(path_images):
         os.makedirs(path_images)
-        prepare_image_fourier(label_path,path_images,opt.factor)
-
+        prepare_image_fourier('test_set/labels',path_images,opt.factor)
     if not os.path.exists(opt.plot_dir):
         os.makedirs(opt.plot_dir)
     if not os.path.exists(opt.preds_dir):

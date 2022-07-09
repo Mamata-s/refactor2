@@ -11,7 +11,6 @@ Possible error: Make sure factor_2, factor_4 folder of downsample images are not
 
 '''
 
-from venv import create
 import torch
 import torch.nn as nn
 import  cv2
@@ -32,13 +31,15 @@ import warnings
 warnings.filterwarnings("ignore")
  
 def predict_canny_edges(model,image_path,label_path,device,psnr,ssim,mse,nrmse):
-   
+    # print(image_path)
+    # print(label_path)
+    # quit();
+
     degraded = cv2.imread(image_path)
     degraded = cv2.cvtColor(degraded, cv2.COLOR_BGR2GRAY)
     
     image_blur = cv2.GaussianBlur(degraded, (5,5), 0) 
     lr_edges = cv2.Canny(image = image_blur, threshold1=1, threshold2=20)
-   
     ref = cv2.imread(label_path)
     ref = cv2.cvtColor(ref, cv2.COLOR_BGR2GRAY)
 
@@ -52,19 +53,17 @@ def predict_canny_edges(model,image_path,label_path,device,psnr,ssim,mse,nrmse):
     
     pre_edges = model(input_edges)
     pre = pre_edges+degraded
-
     pre = pre.clamp(0.,1.)
-
+    
     init_psnr = psnr(degraded, ref).item()
     init_ssim = ssim(degraded, ref).item()
     init_mse = mse(degraded, ref).item()
     init_nrmse = nrmse(ref,degraded).item()
 
-    model_psnr = psnr(ref, pre).item()
+    model_psnr = psnr(pre, ref).item()
     model_ssim = ssim(pre, ref).item()
     model_mse = mse(pre, ref).item()
     model_nrmse = nrmse(ref, pre).item()
-
     return  {'init_psnr':init_psnr,
             'init_ssim': init_ssim,
             'init_mse': init_mse,
@@ -75,15 +74,13 @@ def predict_canny_edges(model,image_path,label_path,device,psnr,ssim,mse,nrmse):
             'model_nrmse':model_nrmse}
 
 # correct version
-def predict_downsample_edges(opt,model,image_path,label_path,downsample_path,device,psnr,ssim,mse,nrmse):
-    print('image path',image_path)
+def predict_downsample_edges(opt,model,image_path,label_path,device,psnr,ssim,mse,nrmse):
     degraded = cv2.imread(image_path)
     degraded = cv2.cvtColor(degraded, cv2.COLOR_BGR2GRAY).astype(np.float32)
     ref = cv2.imread(label_path)
     ref = cv2.cvtColor(ref, cv2.COLOR_BGR2GRAY).astype(np.float32)
 
-    downsample = cv2.imread(downsample_path)
-    downsample = cv2.cvtColor(downsample, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    downsample = crop_pad_kspace(degraded,pad=True,factor= opt.factor+2).astype(np.float32) # working
 
     degraded = degraded/255.
     ref = ref/255.
@@ -98,11 +95,10 @@ def predict_downsample_edges(opt,model,image_path,label_path,downsample_path,dev
     input_edges = degraded-downsample
     label_edges = ref - degraded
 
-
+    # perform super-resolution with srcnn
     pre_edges = model(input_edges)
     pre=pre_edges+degraded
-
-    pre = pre.clamp(0.,1.)
+    pre = pre.clamp(0., 1.)
 
     init_psnr = psnr(degraded, ref).item()
     init_ssim = ssim(degraded, ref).item()
@@ -111,10 +107,8 @@ def predict_downsample_edges(opt,model,image_path,label_path,downsample_path,dev
 
     model_psnr = psnr(pre, ref).item()
     model_ssim = ssim(pre, ref).item()
-    print('SSIM Value:' ,model_ssim)
     model_mse = mse(pre, ref).item()
     model_nrmse = nrmse(ref, pre).item()
-
     return  {'init_psnr':init_psnr,
             'init_ssim': init_ssim,
             'init_mse': init_mse,
@@ -127,18 +121,15 @@ def predict_downsample_edges(opt,model,image_path,label_path,downsample_path,dev
 
 def evaluate_model_edges(opt):
     dir_dict = create_dictionary(opt.image_path,opt.label_path)
-    downsample_dict = create_dictionary(opt.image_path,opt.downsample_path)
-    
     initial ={'psnr':[],'ssim':[],'mse':[],'nrmse':[]}
     model = {'psnr':[],'ssim':[],'mse':[],'nrmse':[]}
     for file in os.listdir(opt.image_path):  
         # perform super-resolution
         image_path = os.path.join(opt.image_path,file)
         label_path = os.path.join(opt.label_path, dir_dict[file])
-        downsample_path = os.path.join(opt.downsample_path, downsample_dict[file])
 
         if opt.edge_type in ['downsample']:
-            output = predict_downsample_edges(opt=opt, model=opt.model,image_path=image_path,label_path=label_path,downsample_path=downsample_path,device=opt.device,psnr=opt.psnr,ssim=opt.ssim,mse = opt.mse,nrmse=opt.nrmse)
+            output = predict_downsample_edges(opt=opt, model=opt.model,image_path=image_path,label_path=label_path,device=opt.device,psnr=opt.psnr,ssim=opt.ssim,mse = opt.mse,nrmse=opt.nrmse)
         elif opt.edge_type in ['canny']:
             output = predict_canny_edges(model=opt.model,image_path= image_path,label_path=label_path,device=opt.device,psnr=opt.psnr,ssim=opt.ssim,mse = opt.mse,nrmse=opt.nrmse)
         else:
@@ -158,21 +149,21 @@ def evaluate_model_edges(opt):
     print('metric for initial')
     for key in initial.keys():
         print('key is',key) 
-        print('max : ',max(initial[key])) 
         print('min : ',min(initial[key])) 
+        print('max : ',max(initial[key])) 
         print( ' std :', statistics.pstdev(initial[key]))
-        print( ' median :', statistics.median(initial[key]))
         print( ' mean :', statistics.mean(initial[key]))
+        print( ' median :', statistics.median(initial[key]))
         print('************************************************************************************')
 
     print('metric for model')
     for key in model.keys():
         print('key is',key) 
-        print('max : ',max(model[key])) 
         print('min : ',min(model[key])) 
+        print('max : ',max(model[key])) 
         print( ' std :', statistics.pstdev(model[key]))
-        print( ' median :', statistics.median(model[key]))
         print( ' mean :', statistics.mean(model[key]))
+        print( ' median :', statistics.median(model[key]))
         print('************************************************************************************')
 
     with open('model.yaml', 'w') as f:
@@ -198,8 +189,6 @@ if __name__ == '__main__':
     opt = parser.parse_args()
   
     opt.image_path = f'resolution_dataset25/z_axis/factor_{opt.factor}/test'
-    downsample_path_factor = opt.factor +2
-    opt.downsample_path = f'resolution_dataset25/z_axis/factor_{downsample_path_factor}/test'
 
     '''set device'''
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

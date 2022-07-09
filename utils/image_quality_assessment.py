@@ -75,6 +75,7 @@ def psnr(raw_image: np.ndarray, dst_image: np.ndarray, crop_border: int, only_te
     raw_image = raw_image.astype(np.float64)
     dst_image = dst_image.astype(np.float64)
 
+
     psnr_metrics = 10 * np.log10((255.0 ** 2) / np.mean((raw_image - dst_image) ** 2) + 1e-8)
 
     return psnr_metrics

@@ -85,11 +85,11 @@ def validate_edges(opt,model, dataloader,criterion=nn.MSELoss()):
             output = model(edges_lr)
 
             output = output+image
+            output = output.clamp(0.,1.)
 
             loss += criterion(output,label) 
             l1 += l1_loss(output,label)
             count += len(label)
-            output = output.clamp(0.0,1.0)
 
             #psnr and ssim using tensor
             psnr += opt.psnr(output, label)
