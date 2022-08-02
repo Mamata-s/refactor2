@@ -17,7 +17,8 @@ from models.rrdbnet3d import RRDBNet3D
 def load_model(opt,model,checkpoint):
     state_dict = model.state_dict()
     for n, p in checkpoint['model_state_dict'].items():
-        new_key = n[7:]
+        # new_key = n[7:]
+        new_key = n
         if new_key in state_dict.keys():
             state_dict[new_key].copy_(p)
         else:

@@ -31,8 +31,9 @@ import numpy as np
 import warnings
 warnings.filterwarnings("ignore")
  
+
 def predict_canny_edges(model,image_path,label_path,device,psnr,ssim,mse,nrmse):
-   
+  
     degraded = cv2.imread(image_path)
     degraded = cv2.cvtColor(degraded, cv2.COLOR_BGR2GRAY)
     
@@ -54,7 +55,7 @@ def predict_canny_edges(model,image_path,label_path,device,psnr,ssim,mse,nrmse):
     pre = pre_edges+degraded
 
     pre = pre.clamp(0.,1.)
-
+    
     init_psnr = psnr(degraded, ref).item()
     init_ssim = ssim(degraded, ref).item()
     init_mse = mse(degraded, ref).item()
@@ -76,7 +77,7 @@ def predict_canny_edges(model,image_path,label_path,device,psnr,ssim,mse,nrmse):
 
 # correct version
 def predict_downsample_edges(opt,model,image_path,label_path,downsample_path,device,psnr,ssim,mse,nrmse):
-    print('image path',image_path)
+
     degraded = cv2.imread(image_path)
     degraded = cv2.cvtColor(degraded, cv2.COLOR_BGR2GRAY).astype(np.float32)
     ref = cv2.imread(label_path)
@@ -84,6 +85,8 @@ def predict_downsample_edges(opt,model,image_path,label_path,downsample_path,dev
 
     downsample = cv2.imread(downsample_path)
     downsample = cv2.cvtColor(downsample, cv2.COLOR_BGR2GRAY).astype(np.float32)
+
+    # downsample = crop_pad_kspace(degraded,pad=True,factor= opt.factor+2).astype(np.float32) # working
 
     degraded = degraded/255.
     ref = ref/255.
@@ -96,9 +99,6 @@ def predict_downsample_edges(opt,model,image_path,label_path,downsample_path,dev
   
     
     input_edges = degraded-downsample
-    label_edges = ref - degraded
-
-
     pre_edges = model(input_edges)
     pre=pre_edges+degraded
 
@@ -111,10 +111,9 @@ def predict_downsample_edges(opt,model,image_path,label_path,downsample_path,dev
 
     model_psnr = psnr(pre, ref).item()
     model_ssim = ssim(pre, ref).item()
-    print('SSIM Value:' ,model_ssim)
     model_mse = mse(pre, ref).item()
     model_nrmse = nrmse(ref, pre).item()
-
+    
     return  {'init_psnr':init_psnr,
             'init_ssim': init_ssim,
             'init_mse': init_mse,
@@ -127,8 +126,9 @@ def predict_downsample_edges(opt,model,image_path,label_path,downsample_path,dev
 
 def evaluate_model_edges(opt):
     dir_dict = create_dictionary(opt.image_path,opt.label_path)
+
     downsample_dict = create_dictionary(opt.image_path,opt.downsample_path)
-    
+  
     initial ={'psnr':[],'ssim':[],'mse':[],'nrmse':[]}
     model = {'psnr':[],'ssim':[],'mse':[],'nrmse':[]}
     for file in os.listdir(opt.image_path):  
@@ -138,6 +138,7 @@ def evaluate_model_edges(opt):
         downsample_path = os.path.join(opt.downsample_path, downsample_dict[file])
 
         if opt.edge_type in ['downsample']:
+            print('predicting downsample')
             output = predict_downsample_edges(opt=opt, model=opt.model,image_path=image_path,label_path=label_path,downsample_path=downsample_path,device=opt.device,psnr=opt.psnr,ssim=opt.ssim,mse = opt.mse,nrmse=opt.nrmse)
         elif opt.edge_type in ['canny']:
             output = predict_canny_edges(model=opt.model,image_path= image_path,label_path=label_path,device=opt.device,psnr=opt.psnr,ssim=opt.ssim,mse = opt.mse,nrmse=opt.nrmse)
@@ -158,21 +159,21 @@ def evaluate_model_edges(opt):
     print('metric for initial')
     for key in initial.keys():
         print('key is',key) 
-        print('max : ',max(initial[key])) 
         print('min : ',min(initial[key])) 
+        print('max : ',max(initial[key])) 
         print( ' std :', statistics.pstdev(initial[key]))
-        print( ' median :', statistics.median(initial[key]))
         print( ' mean :', statistics.mean(initial[key]))
+        print( ' median :', statistics.median(initial[key]))
         print('************************************************************************************')
 
     print('metric for model')
     for key in model.keys():
         print('key is',key) 
-        print('max : ',max(model[key])) 
-        print('min : ',min(model[key])) 
+        print('min : ',min(model[key]))
+        print('max : ',max(model[key]))  
         print( ' std :', statistics.pstdev(model[key]))
-        print( ' median :', statistics.median(model[key]))
         print( ' mean :', statistics.mean(model[key]))
+        print( ' median :', statistics.median(model[key]))
         print('************************************************************************************')
 
     with open('model.yaml', 'w') as f:

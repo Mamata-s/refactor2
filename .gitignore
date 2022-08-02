@@ -1,6 +1,7 @@
 outputs/
 resolution_dataset50/
 resolution_dataset25/
+resolution_dataset25_small4/
 3d_dataset50/
 wandb/
 

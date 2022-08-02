@@ -9,7 +9,10 @@ import torch
 import torch.nn as nn
 from dataset.dataset_cv import MRIDataset,MRIDatasetPatch,RdnSampler,MRIDatasetEdges,MRIDatasetDownsampleEdges,MRIDatasetPatchDownsampleEdges
 from utils.config import set_val_dir
-from models.densenet import SRDenseNet
+# from models.densenet import SRDenseNet
+# from models.densenet_new import SRDenseNet
+from models.densenet_smchannel import SRDenseNet
+
 from models.dense3d import SR3DDenseNet
 from models.rrdbnet3d import RRDBNet3D
 from models.rrdbnet import RRDBNet 
@@ -18,6 +21,24 @@ from models.unet import Unet, UnetSmall
 from models.resunet import ResUNet
 import torch.optim as optim
 
+import utils.dataset_properties as dt
+
+
+def normalize_edges(edge_tensor):
+    '''
+    Coverts given tensor into range -1 to 1 using the min max value set in the dataset properties file
+    '''
+    deno = dt.label_avg_max - dt.label_avg_min
+    edge_tensor = (((edge_tensor-dt.label_avg_min)*2)/deno)-1
+    return edge_tensor
+
+def denormalize_edges(edge_tensor):
+    '''
+    Coverts given tensor into back to its original range using reference min max from the dataset properties file
+    '''
+    deno = dt.label_avg_max - dt.label_avg_min
+    edge_tensor =  ((edge_tensor*deno)+deno+(2*dt.label_avg_min))/2
+    return edge_tensor
 
 
 ''' set the dataset path based on opt.dataset,opt.factor values and load & return the same dataset/dataloader'''
@@ -66,11 +87,14 @@ def load_val_dataset(opt):
 
 '''reduce learning rate of optimizer by half on every  150 and 225 epochs'''
 def adjust_learning_rate(optimizer, epoch,lr,lr_factor=0.5):
-    if epoch % 30 == 0 or epoch % 50 == 0:
-        lr = lr * lr_factor
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
-    return lr
+    if lr <= 0.0000001:
+        return lr
+    else:
+        if epoch % 30 == 0 or epoch % 50 == 0:
+            lr = lr * lr_factor
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
+        return lr
 
 
 
@@ -78,7 +102,7 @@ def adjust_learning_rate(optimizer, epoch,lr,lr_factor=0.5):
 def load_model(opt):
     if opt.model_name in ['srdense','dense']:
         model =  SRDenseNet(num_channels=1, growth_rate = opt.growth_rate, num_blocks = opt.num_blocks, num_layers=opt.num_layers).to(opt.device)
-        model = init_model( model, opt.device,init=opt.init)
+        # model = init_model( model, opt.device,init=opt.init)
     elif opt.model_name in ['unet']:
         model = Unet(in_channels= 1, out_channels= 1, n_blocks=opt.n_blocks, start_filters=opt.start_filters,activation=opt.activation,
                  normalization=opt.normalization,conv_mode = opt.conv_mode,dim= opt.dim,up_mode=opt.up_mode)

@@ -273,7 +273,7 @@ def read_pickle(path):
 
 
 class NRMSELoss(nn.Module):
-    def __init__(self, eps=1e-6):
+    def __init__(self, eps=1e-9):
         super().__init__()
         self.mse = nn.MSELoss(reduction='sum')
         self.eps = eps

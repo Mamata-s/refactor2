@@ -16,10 +16,7 @@ from utils.general import save_configuration,save_configuration_yaml,LogEdgesOut
 from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir,set_train_dir,set_val_dir,set_downsample_train_val_dir
 import os
 import wandb
-os.environ["CUDA_VISIBLE_DEVICES"]='0,1'
-
-
-
+os.environ["CUDA_VISIBLE_DEVICES"]='0'
 
 def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb=None):
 
@@ -85,13 +82,14 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
 
     path="best_weights_factor_{}_epoch_{}.pth".format(opt.factor,best_epoch)
     path = os.path.join(opt.checkpoints_dir, path)
+    # model.save(best_weights,opt,path,optimizer.state_dict(),best_epoch)
     model.module.save(best_weights,opt,path,optimizer.state_dict(),best_epoch)
     print('model saved')
 
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/hrdownsample/dense_z_axis25_mask_training_addition_f4.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/factor_4/dense_z_axis25_mask_training_original_f4.yaml')
     # default='yaml/mask_training/canny_edges_original_f4_zaxis25.yaml'
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
@@ -135,6 +133,9 @@ if __name__ == "__main__":
         set_downsample_train_val_dir(opt)
         train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset_downsample_edges(opt)
 
+    print(opt.downsample_train_dir)
+    # quit();
+
     '''get the epoch image path to save the image output of every epoch for given single image'''
     if opt.patch:
         opt.epoch_image_path = '{}/z_axis/factor_{}/train/lr_f1_160_{}_z_46.png'.format(opt.dataset_size,opt.factor,opt.factor)
@@ -168,6 +169,8 @@ if __name__ == "__main__":
 
     '''wrap model for data parallelism'''
     num_of_gpus = torch.cuda.device_count()
+    print('Num of GPU available', num_of_gpus)
+    opt.data_parallel = False
     if num_of_gpus>1:
         model = nn.DataParallel(model,device_ids=[*range(num_of_gpus)])
         opt.data_parallel = True

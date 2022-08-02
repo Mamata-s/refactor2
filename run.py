@@ -199,15 +199,15 @@ import os
 #***************************** TEST **********************************************************************************************************
 
 # # ******* Canny Edges Original factor 2 (Done)
-model_name= 'dense'
-factor=2
-checkpoint='outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_original_f2_155_0.0001/checkpoints/z_axis/factor_2/epoch_150_f_2.pth'
-plot_dir='test_set/plots_2/'
-preds_dir='test_set/preds_2/'
-edge_type='canny'
-pred_edges_dir='test_set/preds_edges_2/'
-input_edges_dir='test_set/input_edges_2/'
-os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+# model_name= 'dense'
+# factor=2
+# checkpoint='outputs/resolution_dataset25/srdense/dense_canny_z_axis25_mask_training_original_f2_155_0.0001/checkpoints/z_axis/factor_2/epoch_150_f_2.pth'
+# plot_dir='test_set/plots_2/'
+# preds_dir='test_set/preds_2/'
+# edge_type='canny'
+# pred_edges_dir='test_set/preds_edges_2/'
+# input_edges_dir='test_set/input_edges_2/'
+# os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
 
 
 # ******* Canny Edges Original factor 4 (Done)
@@ -296,3 +296,157 @@ os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} -
 # pred_edges_dir=f'test_set/preds_edges_{factor}/'
 # input_edges_dir=f'test_set/input_edges_{factor}/'
 # os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+
+
+
+
+
+
+#****************************TEST AND EVAL*******************************************************************************************
+
+
+
+
+# HR Downsample  Revised Dataset Original without mask factor 2 (no module worked)
+# model_name= 'dense'
+# factor=2
+# checkpoint='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_training_original_f2_105_0.0001/checkpoints/z_axis/factor_2/epoch_100_f_2.pth'
+# plot_dir=f'test_set/plots_{factor}/'
+# preds_dir=f'test_set/preds_{factor}/'
+# edge_type='downsample'
+# pred_edges_dir=f'test_set/preds_edges_{factor}/'
+# input_edges_dir=f'test_set/input_edges_{factor}/'
+# os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+
+# # model_name= 'dense'
+# label_path ='resolution_dataset25/z_axis/label/test'
+# factor= 2
+# checkpoint='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_training_original_f2_105_0.0001/checkpoints/z_axis/factor_2/epoch_100_f_2.pth'
+# edge_type='downsample'
+# os.system(f"python eval.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --label-path={label_path} --edge-type={edge_type} ")
+
+
+
+
+
+
+
+# HR Downsample  Revised Dataset Original without mask factor 4
+# model_name= 'dense'
+# factor=4
+# checkpoint='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_training_original_f4_805_0.0001/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+# plot_dir=f'test_set/plots_{factor}/'
+# preds_dir=f'test_set/preds_{factor}/'
+# edge_type='downsample'
+# pred_edges_dir=f'test_set/preds_edges_{factor}/'
+# input_edges_dir=f'test_set/input_edges_{factor}/'
+# os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+
+
+# # model_name= 'dense'
+# label_path ='resolution_dataset25/z_axis/label/test'
+# factor= 4
+# checkpoint='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_training_original_f4_805_0.0001/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+# edge_type='downsample'
+# os.system(f"python eval.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --label-path={label_path} --edge-type={edge_type} ")
+
+
+
+
+
+
+# HR Downsample  Revised Dataset Addition without mask factor 2
+# model_name= 'dense'
+# factor=2
+# checkpoint='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_training_addition_f2_105_0.0001/checkpoints/z_axis/factor_2/epoch_100_f_2.pth'
+# plot_dir=f'test_set/plots_{factor}/'
+# preds_dir=f'test_set/preds_{factor}/'
+# edge_type='downsample'
+# pred_edges_dir=f'test_set/preds_edges_{factor}/'
+# input_edges_dir=f'test_set/input_edges_{factor}/'
+# os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+
+
+# # model_name= 'dense'
+# label_path ='resolution_dataset25/z_axis/label/test'
+# factor= 2
+# checkpoint='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_training_addition_f2_105_0.0001/checkpoints/z_axis/factor_2/epoch_100_f_2.pth'
+# edge_type='downsample'
+# os.system(f"python eval.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --label-path={label_path} --edge-type={edge_type} ")
+
+
+
+
+
+# HR Downsample  Revised Dataset Addition without mask factor 4
+
+# model_name= 'dense'
+# factor=4
+# checkpoint='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_training_addition_f4_105_0.0001/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+# plot_dir=f'test_set/plots_{factor}/'
+# preds_dir=f'test_set/preds_{factor}/'
+# edge_type='downsample'
+# pred_edges_dir=f'test_set/preds_edges_{factor}/'
+# input_edges_dir=f'test_set/input_edges_{factor}/'
+# os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+
+
+# # model_name= 'dense'
+# label_path ='resolution_dataset25/z_axis/label/test'
+# factor= 4
+# checkpoint='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_training_addition_f4_105_0.0001/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+# edge_type='downsample'
+# os.system(f"python eval.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --label-path={label_path} --edge-type={edge_type} ")
+
+
+
+
+
+# *****************************************************************************************************************************************************************************
+
+
+
+
+#  HR Downsample  Revised Dataset Original with mask factor 2 
+# model_name= 'dense'
+# factor=2
+# checkpoint='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_mask_training_original_f2_105_0.0001/checkpoints/z_axis/factor_2/epoch_100_f_2.pth'
+# plot_dir=f'test_set/plots_{factor}/'
+# preds_dir=f'test_set/preds_{factor}/'
+# edge_type='downsample'
+# pred_edges_dir=f'test_set/preds_edges_{factor}/'
+# input_edges_dir=f'test_set/input_edges_{factor}/'
+# os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+
+# model_name= 'dense'
+# label_path ='resolution_dataset25/z_axis/label/test'
+# factor= 2
+# checkpoint ='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_mask_training_original_f2_105_0.0001/checkpoints/z_axis/factor_2/epoch_100_f_2.pth'
+# edge_type='downsample'
+# os.system(f"python eval.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --label-path={label_path} --edge-type={edge_type} ")
+
+
+
+
+
+
+#  HR Downsample  Revised Dataset Original with mask factor 4
+model_name= 'dense'
+factor=4
+checkpoint = 'outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_training_original_f4_805_0.0001/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+# checkpoint='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_mask_training_original_f4_805_0.0001/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+plot_dir=f'test_set/plots_{factor}/'
+preds_dir=f'test_set/preds_{factor}/'
+edge_type='downsample'
+pred_edges_dir=f'test_set/preds_edges_{factor}/'
+input_edges_dir=f'test_set/input_edges_{factor}/'
+os.system(f"python test.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --plot-dir={plot_dir} --preds-dir={preds_dir} --edges --edge-type={edge_type} --pred-edges-dir={pred_edges_dir} --input-edges-dir={input_edges_dir}")
+
+
+model_name= 'dense'
+label_path ='resolution_dataset25/z_axis/label/test'
+factor= 4
+checkpoint = 'outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_training_original_f4_805_0.0001/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+# checkpoint='outputs/resolution_dataset25/srdense/hrdownsample_z_axis25_mask_training_original_f4_805_0.0001/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+edge_type='downsample'
+os.system(f"python eval.py --checkpoint={checkpoint} --model_name={model_name} --factor={factor} --label-path={label_path} --edge-type={edge_type} ")

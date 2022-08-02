@@ -21,10 +21,10 @@ dataset_name: 'z_axis'
 num_epochs: 105
 num_workers: 8
 seed: 123
-lr: 0.0001
+lr: 0.00005
 lr_decay_factor: 0.9  #lr is decay by 10% after every 150th or 250th epoch
 n_freq: 20 # model checkpoint saving frequency
-train_batch_size: 8
+train_batch_size: 4
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 # opt.device: cpu or gpu during training
 factor: 4

@@ -30,7 +30,8 @@ warnings.filterwarnings("ignore")
 
 
 
-label_path ='resolution_dataset25/z_axis/label/test/'
+# label_path ='resolution_dataset25/z_axis/label/test/'
+label_path ='test_set/labels/'
 
 def save_array(path,array):
     f = open(path, "w")
@@ -53,10 +54,11 @@ def compare_images(target, ref,psnr,ssim):
     return scores
 
 def make_downsample_images(opt):
-    path_images = 'test_set/images/factor_{}'.format(opt.factor+2)
+    factor = opt.factor+opt.factor
+    path_images = 'test_set/images/factor_{}'.format(factor)
     if not os.path.exists(path_images):
         os.makedirs(path_images)
-    prepare_image_fourier(label_path,path_images,opt.factor+2)
+    prepare_image_fourier(label_path,path_images,factor)
     return path_images
 
 
@@ -114,12 +116,14 @@ def predict_canny_edges(model,path,factor,device,psnr,ssim):
 def predict_downsample_edges(opt,model,path,factor,device,psnr,ssim):
 
     image_path = path
-
+    # print(image_path)
 
     # load the degraded and reference images
     path, file = os.path.split(image_path)
     degraded = cv2.imread(image_path)
     degraded = cv2.cvtColor(degraded, cv2.COLOR_BGR2GRAY).astype(np.float32)
+
+
     ref_path = os.path.join(label_path,file)
     ref = cv2.imread(ref_path)
     ref = cv2.cvtColor(ref, cv2.COLOR_BGR2GRAY).astype(np.float32)
@@ -162,11 +166,6 @@ def predict_downsample_edges(opt,model,path,factor,device,psnr,ssim):
     input_edges= min_max_normalize(input_edges)
     label_edges = min_max_normalize(label_edges)
 
-    print('After normalization')
-    print('range of prediction edges',pre_edges.min(),pre_edges.max())
-    print('range of input edges',input_edges.min(),input_edges.max())
-    print('range of label edges',label_edges.min(),label_edges.max())
-
 
     # image quality calculations
     scores = []
@@ -174,7 +173,7 @@ def predict_downsample_edges(opt,model,path,factor,device,psnr,ssim):
     scores.append(compare_images(initial_baseline, ref,psnr,ssim))
     scores.append(compare_images(pre, ref,psnr,ssim))
 
-    #saving the edges as np array to check the value
+    # saving the edges as np array to check the value
     # i_edge = input_edges
     # # print(i_edge)
     # i_edge = i_edge.squeeze().detach().cpu().numpy()*255.
@@ -192,8 +191,6 @@ def predict_downsample_edges(opt,model,path,factor,device,psnr,ssim):
     return tensor2image(ref), tensor2image(degraded), tensor2image(pre), tensor2image(input_edges),tensor2image(pre_edges),tensor2image(label_edges), tensor2image(initial_baseline) ,scores
 
 def save_results_edges(model,path,opt):
-    # if opt.edge_type in ['downsample']:
-    #     downsample_path = make_downsample_images(opt)
     for file in os.listdir(path):
         
         # perform super-resolution
@@ -212,15 +209,15 @@ def save_results_edges(model,path,opt):
 
         axs[1].imshow(degraded,cmap='gray')
         axs[1].set_title('Degraded')
-        axs[1].set(xlabel = 'PSNR: {:.3f}% \nMSE: {:.3f}% \nSSIM: {:.3f}% \nNRMSE: {:.3f}%'.format(scores[0][0], scores[0][1], scores[0][2],scores[0][3]))
+        axs[1].set(xlabel = 'PSNR: {:.6f} \nMSE: {:.6f} \nSSIM: {:.6f} \nNRMSE: {:.6f}'.format(scores[0][0], scores[0][1], scores[0][2],scores[0][3]))
 
         axs[2].imshow(intial_baseline,cmap='gray')
         axs[2].set_title('Initial_baseline')
-        axs[2].set(xlabel = 'PSNR: {:.3f}% \nMSE: {:.3f}% \nSSIM: {:.3f}% \nNRMSE: {:.3f}%'.format(scores[1][0], scores[1][1], scores[1][2],scores[1][3]))
+        axs[2].set(xlabel = 'PSNR: {:.6f} \nMSE: {:.6f} \nSSIM: {:.6f} \nNRMSE: {:.6f}'.format(scores[1][0], scores[1][1], scores[1][2],scores[1][3]))
 
         axs[3].imshow(output,cmap='gray')
         axs[3].set_title(opt.model_name)
-        axs[3].set(xlabel = 'PSNR: {:.3f}% \nMSE: {:.3f}% \nSSIM: {:.3f}% \nNRMSE: {:.3f}%'.format(scores[2][0], scores[2][1], scores[2][2],scores[2][3]))
+        axs[3].set(xlabel = 'PSNR: {:.6f} \nMSE: {:.6f} \nSSIM: {:.6f} \nNRMSE: {:.6f}'.format(scores[2][0], scores[2][1], scores[2][2],scores[2][3]))
 
         axs[4].imshow(input_edges,cmap='gray')
         axs[4].set_title('Input Edges')
@@ -238,10 +235,10 @@ def save_results_edges(model,path,opt):
         
         print('Saving {}'.format(file))
         print(fig.savefig(opt.plot_dir+'{}.png'.format(os.path.splitext(file)[0])) )
-        # print(cv2.imwrite(opt.preds_dir+'{}.png'.format(os.path.splitext(file)[0]),output))
+        print(cv2.imwrite(opt.preds_dir+'{}.png'.format(os.path.splitext(file)[0]),output))
 
-        # print(cv2.imwrite(opt.pred_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),output_edges))
-        # print(cv2.imwrite(opt.input_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),input_edges))
+        print(cv2.imwrite(opt.pred_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),output_edges))
+        print(cv2.imwrite(opt.input_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),input_edges))
         plt.close()
 
 
@@ -269,6 +266,7 @@ def predict(model,path,factor,device,psnr,ssim):
     
     # perform super-resolution with srcnn
     pre = model(degraded)
+    pre = pre.clamp(0.,1.)
     
     # image quality calculations
     scores = []
@@ -290,10 +288,10 @@ def save_results(model,path,opt):
         axs[0].set_title('Original')
         axs[1].imshow(degraded,cmap='gray')
         axs[1].set_title('Degraded')
-        axs[1].set(xlabel = 'PSNR: {:.3f}% \nMSE: {:.3f}% \nSSIM: {:.3f}%'.format(scores[0][0], scores[0][1], scores[0][2]))
+        axs[1].set(xlabel = 'PSNR: {:.6f} \nMSE: {:.6f} \nSSIM: {:.6f}'.format(scores[0][0], scores[0][1], scores[0][2]))
         axs[2].imshow(output,cmap='gray')
         axs[2].set_title(opt.model_name)
-        axs[2].set(xlabel = 'PSNR: {:.3f}% \nMSE: {:.3f}% \nSSIM: {:.3f}%'.format(scores[1][0], scores[1][1], scores[1][2]))
+        axs[2].set(xlabel = 'PSNR: {:.6f} \nMSE: {:.6f} \nSSIM: {:.6f}'.format(scores[1][0], scores[1][1], scores[1][2]))
 
         # remove the x and y ticks
         for ax in axs:

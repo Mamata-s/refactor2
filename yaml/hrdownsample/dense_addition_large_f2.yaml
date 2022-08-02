@@ -1,0 +1,57 @@
+#configuration file
+
+
+model_name: 'srdense'
+exp_name: 'hrdownsample_largenet_mseloss_z_axis25_ mask_training_addition_f2_165_0.00005'
+edge_type: 'downsample'  #options: canny, downsample. if downsample provide opt.downsample_train_dir and opt.downsample_val_dir also
+loss_type: 'addition'  #options addition, original: with addition loss is calculated after addition
+ #for addition mse is calculate after adding edges and loss calculated between (image and label image) else loss cal between edges
+training_type: 'addition'  # this parameter is used while using train srdense only(not for train_edges_epoch)
+
+
+
+project_name: 'super_resolution'
+wandb: True 
+
+#dataset
+dataset_size: resolution_dataset25
+size: 25
+dataset_name: 'z_axis'
+
+#training
+num_epochs: 165
+num_workers: 8
+seed: 123
+lr: 0.00005
+lr_decay_factor: 0.9  #lr is decay by 10% after every 150th or 250th epoch
+n_freq: 20 # model checkpoint saving frequency
+train_batch_size: 4
+val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
+# opt.device: cpu or gpu during training
+factor: 2
+
+
+
+#parameter added for mask training
+apply_mask: True
+mask_threshold: 25
+
+#srdense
+criterion: mse
+optimizer: sgd
+momentum: 0.9
+weight_decay: 0
+
+
+
+# init: 'norm' 
+# init: 'kaiming'  #options: norm,xavier,kaiming
+growth_rate: 5
+num_blocks: 5
+num_layers: 5
+weights_file: None
+scale: 4
+patch: False
+
+note: 'Training srdense net for predicting the edges by providing difference between lr_x and lr_2x as the input without using masking while calculating loss'
+

@@ -9,6 +9,7 @@ from skimage.metrics import structural_similarity
 from utils.general import min_max_normalize
 from utils.logging_metric import update_epoch_losses, update_losses, log_results
 from utils.preprocess import hfen_error
+from utils.train_utils import normalize_edges,denormalize_edges
 
 
 
@@ -23,6 +24,12 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
             mask = data['mask'].to(opt.device)
 
             label_error_map = labels-images
+
+            #converting to (-1 to 1) range
+            label_error_map = normalize_edges(label_error_map)
+            edges_lr = normalize_edges(edges_lr)
+
+
             preds = model(edges_lr)
 
             if opt.apply_mask:
@@ -59,7 +66,11 @@ def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataload
             if not os.path.exists(opt.checkpoints_dir):
                 os.makedirs(opt.checkpoints_dir)
             path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
-            model.module.save(model.state_dict(),opt,path,optimizer.state_dict(),epoch)
+            if opt.data_parallel:
+                model.module.save(model.state_dict(),opt,path,optimizer.state_dict(),epoch)
+            else:
+                model.save(model.state_dict(),opt,path,optimizer.state_dict(),epoch)
+            
             # torch.save(model.state_dict(), os.path.join(config['outputs_dir'], 'epoch_{}_f_{}.pth'.format(epoch,args.factor)))
     return {'epoch':epoch,
             'hr': labels,
@@ -81,8 +92,11 @@ def validate_edges(opt,model, dataloader,criterion=nn.MSELoss()):
             image = data['image'].to(opt.device)
             label = data['label'].to(opt.device)
             edges_lr = data['lr_edges'].to(opt.device)
-            label_edges = label-image
+
+            edges_lr = normalize_edges(edges_lr)
             output = model(edges_lr)
+            
+            output = denormalize_edges(output)
 
             output = output+image
             output = output.clamp(0.,1.)
