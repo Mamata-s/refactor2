@@ -42,7 +42,8 @@ def load_model(opt):
     model = SRDenseNet()
     state_dict = model.state_dict()
     for n, p in checkpoint['model_state_dict'].items():
-        new_key = n[7:]
+        # new_key = n[7:]
+        new_key = n
         # print(new_key)
         if new_key in state_dict.keys():
             # new_p = p*random.uniform(2., 7.)
@@ -260,6 +261,21 @@ def save_results_edges(model,path,opt):
         
         # print('Saving {}'.format(file))
         fig.savefig(opt.plot_dir+'{}.png'.format(os.path.splitext(file)[0])) 
+
+         # display images as subplots
+        fig1, axs = plt.subplots(1, 2, figsize=(10, 8))
+        axs[0].imshow((ref/255.)-(degraded/255.),cmap='gray')
+        axs[0].set_title('Original error (label-input)')
+
+        axs[1].imshow((ref/255.)-(output/255.),cmap='gray')
+        axs[1].set_title('Model Error (label -output)')
+
+        # remove the x and y ticks
+        for ax in axs:
+            ax.set_xticks([])
+            ax.set_yticks([])
+        fig1.savefig(opt.plot_dir+'{}_errormap.png'.format(os.path.splitext(file)[0])) 
+
         cv2.imwrite(opt.preds_dir+'{}.png'.format(os.path.splitext(file)[0]),output)
 
         cv2.imwrite(opt.pred_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),output_edges)

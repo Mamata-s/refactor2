@@ -35,7 +35,7 @@ class DenseBlock(nn.Module):
 
 
 class SRDenseNet(nn.Module):
-    def __init__(self, num_channels=1, growth_rate=7, num_blocks=5, num_layers=5):
+    def __init__(self, num_channels=1, growth_rate=3, num_blocks=2, num_layers=2):
         super(SRDenseNet, self).__init__()
 
         # low level features
