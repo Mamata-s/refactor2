@@ -7,8 +7,8 @@ from dataset.dataset_cv import RdnSampler,MRIDatasetEdges
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--label_path', help="label image path", type=str, required=False, default='resolution_dataset25_small4/z_axis/label/train')
-    parser.add_argument('--image_path', help="lr image path", type=str, required=False, default='resolution_dataset25_small4/z_axis/factor_4/train')
+    parser.add_argument('--label_path', help="label image path", type=str, required=False, default='gaussian_dataset25/z_axis/label/train')
+    parser.add_argument('--image_path', help="lr image path", type=str, required=False, default='gaussian_dataset25/z_axis/factor_4/train')
     opt   = parser.parse_args()
     opt.batch_size=1
     opt.size=25

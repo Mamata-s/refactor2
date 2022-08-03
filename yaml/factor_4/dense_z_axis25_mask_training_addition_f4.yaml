@@ -2,7 +2,7 @@
 
 
 model_name: 'srdense'
-exp_name: 'edge_range_corr_dense_bottlenecksmall_hrdownsample_z_axis25_small4_mask_training_addition_f4_155_0.0001'
+exp_name: 'gaussian_edge_range_corr_dense_bottlenecksmall_hrdownsample_z_axis25_small4_mask_training_addition_f4_105_0.0001'
 edge_type: 'downsample'  #options: canny, downsample. if downsample provide opt.downsample_train_dir and opt.downsample_val_dir also
 loss_type: 'addition'  #options addition, original: with addition loss is calculated after addition
  #for addition mse is calculate after adding edges and loss calculated between (image and label image) else loss cal between edges
@@ -13,12 +13,12 @@ project_name: 'super_resolution'
 wandb: True 
 
 #dataset
-dataset_size: resolution_dataset25_small4
+dataset_size: gaussian_dataset25
 size: 25
 dataset_name: 'z_axis'
 
 #training
-num_epochs: 155
+num_epochs: 105
 num_workers: 8
 seed: 123
 lr: 0.0001
@@ -45,9 +45,9 @@ weight_decay: 0
 
 init: 'norm' 
 # init: 'kaiming'  #options: norm,xavier,kaiming
-growth_rate: 3
-num_blocks: 2
-num_layers: 2
+growth_rate: 7
+num_blocks: 5
+num_layers: 5
 weights_file: None
 scale: 4
 patch: False
