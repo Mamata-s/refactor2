@@ -9,7 +9,7 @@ import torch.nn as nn
 from utils.image_quality_assessment import PSNR,SSIM
 import copy
 from utils.logging_metric import LogMetric,create_loss_meters_srdense
-from utils.train_utils import adjust_learning_rate
+from utils.train_utils import adjust_learning_rate, read_dictinary
 from utils.train_epoch import train_epoch_srdense,validate_srdense
 from utils.preprocess import apply_model,apply_model_using_cv
 from utils.general import save_configuration,save_configuration_yaml,LogOutputs
@@ -30,7 +30,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
     
     for epoch in range(opt.num_epochs):
         '''reduce learning rate by factor 0.5 on every 150 or 225 epoch'''
-        opt.lr = adjust_learning_rate(optimizer, epoch,opt.lr)
+        opt.lr = adjust_learning_rate(optimizer, epoch,opt.lr,opt.lr_decay_factor)
 
         '''setting model in train mode'''
         model.train()
@@ -56,7 +56,6 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
                 })
             wandb.log({"other/learning_rate": opt.lr})
             
-            # log_output_images(images, preds, labels) #overwrite on same table on every epoch
             if epoch % opt.n_freq == 0:
                 print('images shape',images.shape)
                 log_table_output.append_list(epoch,images,labels,preds)  #create a class with list and function to loop through list and add to log table
@@ -80,11 +79,14 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
     path = metric_dict.save_dict(opt)
     _ = save_configuration_yaml(opt)
 
-    # path="best_weights_factor_{}_epoch_{}".format(opt.factor,best_epoch)
-    # torch.save(best_weights, os.path.join(opt.checkpoints_dir, path))
+ 
     path="best_weights_factor_{}_epoch_{}.pth".format(opt.factor,best_epoch)
     path = os.path.join(opt.checkpoints_dir, path)
-    model.module.save(best_weights,opt,path,optimizer.state_dict(),best_epoch)
+    if opt.data_parallel:
+        model.module.save(best_weights,opt,path,optimizer.state_dict(),best_epoch)
+    else:
+        model.save(best_weights,opt,path,optimizer.state_dict(),best_epoch)
+
 
     print('model saved')
 
@@ -121,11 +123,7 @@ if __name__ == "__main__":
     if check: opt.addition=False
 
     '''Set the addition argument value for edges training'''
-    check=True
-    for arg in vars(opt):
-     if arg in ['edges_training']:
-         check=False
-    if check: opt.edges_training=False
+    opt.edges_training=False
 
 
     set_val_dir(opt)  #setting the training datasset dir
@@ -151,9 +149,11 @@ if __name__ == "__main__":
 
     '''wrap model for data parallelism'''
     num_of_gpus = torch.cuda.device_count()
+    print("Number of GPU available", num_of_gpus)
     if num_of_gpus>1:
         model = nn.DataParallel(model,device_ids=[*range(num_of_gpus)])
         opt.data_parallel = True
+        print("Multiple GPU Training")
 
     '''setup loss and optimizer '''
     criterion = get_criterion(opt)
@@ -168,12 +168,7 @@ if __name__ == "__main__":
 
 
     print('training for factor ',opt.factor)
-    print(model)
-
-
-    best_weights = copy.deepcopy(model.state_dict())
-    best_epoch = 0
-    best_psnr = 0.0
+    # print(model)
 
     '''initialize the logging dictionary'''
     metric_dict = LogMetric( { 'train_loss' : [],'epoch':[]})

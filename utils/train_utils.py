@@ -20,8 +20,16 @@ from models.patch_gan import PatchGAN,init_model
 from models.unet import Unet, UnetSmall
 from models.resunet import ResUNet
 import torch.optim as optim
-
+import pickle
 import utils.dataset_properties as dt
+
+def read_dictinary(dir_dict):
+    '''Read annotation dictionary pickle'''
+    a_file = open(dir_dict, "rb")
+    output = pickle.load(a_file)
+    # print(output)
+    a_file.close()
+    return output
 
 
 def normalize_edges(edge_tensor):
@@ -54,7 +62,7 @@ def load_train_dataset(opt):
         train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,shuffle=True,
             num_workers=1,pin_memory=False,drop_last=False)
     else:
-        train_datasets = MRIDataset(opt.train_image_dir, opt.train_label_dir)
+        train_datasets = MRIDataset(opt.train_image_dir, opt.train_label_dir,size=opt.size, dir_dict=opt.dir_dict if opt.dir_dict else None)
         sampler = RdnSampler(train_datasets,opt.train_batch_size,True,classes=train_datasets.classes())
         train_dataloader = torch.utils.data.DataLoader(train_datasets, batch_size = opt.train_batch_size,sampler = sampler,shuffle=False,
             num_workers=1,pin_memory=False,drop_last=False)
@@ -68,7 +76,7 @@ def load_val_dataset(opt):
         eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size, shuffle=True,
             num_workers=1,pin_memory=False,drop_last=False)
     else:
-        val_datasets = MRIDataset(opt.val_image_dir, opt.val_label_dir)
+        val_datasets = MRIDataset(opt.val_image_dir, opt.val_label_dir,size=opt.size,dir_dict = opt.val_dir_dict if opt.val_dir_dict else None)
         val_sampler = RdnSampler(val_datasets,opt.val_batch_size,True,classes=val_datasets.classes())
         eval_dataloader = torch.utils.data.DataLoader(val_datasets, batch_size = opt.val_batch_size,sampler = val_sampler,shuffle=False,
             num_workers=1,pin_memory=False,drop_last=False)

@@ -2,6 +2,8 @@ outputs/
 resolution_dataset50/
 resolution_dataset25/
 resolution_dataset25_small4/
+gaussian_dataset25_mul(old)/
+gaussian_dataset25_mul/
 3d_dataset50/
 wandb/
 

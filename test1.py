@@ -11,6 +11,7 @@ Possible error: Make sure factor_2, factor_4 folder of downsample images are not
 
 '''
 
+from tabnanny import check
 import torch
 import torch.nn as nn
 import  cv2
@@ -27,6 +28,7 @@ from models.densenet_smchannel import SRDenseNet
 import os
 import numpy as np
 from utils.train_utils import normalize_edges, denormalize_edges
+from utils.preprocess import hfen_error
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -39,11 +41,14 @@ label_path ='test_set/labels/'
 
 def load_model(opt):
     checkpoint = torch.load(opt.checkpoint,map_location=torch.device(opt.device))
-    model = SRDenseNet()
+    growth_rate = checkpoint['growth_rate']
+    num_blocks = checkpoint['num_blocks']
+    num_layers =checkpoint['num_layers']
+    model = SRDenseNet(growth_rate=growth_rate,num_blocks=num_blocks,num_layers=num_layers)
     state_dict = model.state_dict()
     for n, p in checkpoint['model_state_dict'].items():
-        # new_key = n[7:]
-        new_key = n
+        new_key = n[7:]
+        # new_key = n
         # print(new_key)
         if new_key in state_dict.keys():
             # new_p = p*random.uniform(2., 7.)
@@ -71,6 +76,10 @@ def compare_images(target, ref,psnr,ssim):
     scores.append(mse(target, ref).item())
     scores.append(ssim(target, ref).item())
     scores.append(nrmse(ref, target).item())
+
+    ref_arr = (ref.squeeze().detach().cpu().numpy())*255.
+    target_arr = (target.squeeze().detach().cpu().numpy())*255.
+    scores.append(hfen_error(ref_arr,target_arr).item())
     
     return scores
 
@@ -155,7 +164,7 @@ def predict_downsample_edges(opt,model,path,factor,device,psnr,ssim):
 
     print('lr path', path)
     print('ref' , ref_path)
-    print('doensample path', down_path)
+    print('downsample path', down_path)
 
 
     
@@ -211,12 +220,13 @@ def predict_downsample_edges(opt,model,path,factor,device,psnr,ssim):
     scores.append(compare_images(pre, ref,psnr,ssim))
 
     # return images and scores
-    return tensor2image(ref), tensor2image(degraded), tensor2image(pre), tensor2image(input_edges),tensor2image(pre_edges),tensor2image(label_edges), tensor2image(initial_baseline) ,scores
+    return ref, degraded, pre,input_edges,pre_edges,label_edges, initial_baseline ,scores
 
 def save_results_edges(model,path,opt):
     print('save result for edges training')
     # if opt.edge_type in ['downsample']:
     #     downsample_path = make_downsample_images(opt)
+    fnsize=17
     for file in os.listdir(path):
         
         # perform super-resolution
@@ -230,29 +240,29 @@ def save_results_edges(model,path,opt):
 
         # display images as subplots
         fig, axs = plt.subplots(1, 7, figsize=(20, 8))
-        axs[0].imshow(ref,cmap='gray')
-        axs[0].set_title('Original')
+        axs[0].imshow(tensor2image(ref),cmap='gray')
+        axs[0].set_title('Original',fontsize=fnsize)
 
-        axs[1].imshow(degraded,cmap='gray')
-        axs[1].set_title('Degraded')
-        axs[1].set(xlabel = 'PSNR: {:.6f} \nMSE: {:.6f} \nSSIM: {:.6f} \nNRMSE: {:.6f}'.format(scores[0][0], scores[0][1], scores[0][2],scores[0][3]))
+        axs[1].imshow(tensor2image(degraded),cmap='gray')
+        axs[1].set_title('Degraded',fontsize=fnsize)
+        axs[1].set(xlabel = 'PSNR: {:.6f} \nMSE: {:.6f} \nSSIM: {:.6f} \nNRMSE: {:.6f} \nHFEN: {:.6f}'.format(scores[0][0], scores[0][1], scores[0][2],scores[0][3],scores[0][4]))
 
-        axs[2].imshow(intial_baseline,cmap='gray')
-        axs[2].set_title('Initial_baseline')
-        axs[2].set(xlabel = 'PSNR: {:.6f} \nMSE: {:.6f}% \nSSIM: {:.6f}% \nNRMSE: {:.6f}'.format(scores[1][0], scores[1][1], scores[1][2],scores[1][3]))
+        axs[2].imshow(tensor2image(intial_baseline),cmap='gray')
+        axs[2].set_title('Initial_baseline',fontsize=fnsize)
+        axs[2].set(xlabel = 'PSNR: {:.6f} \nMSE: {:.6f}% \nSSIM: {:.6f}% \nNRMSE: {:.6f} \nHFEN: {:.6f}'.format(scores[1][0], scores[1][1], scores[1][2],scores[1][3],scores[1][4]))
 
-        axs[3].imshow(output,cmap='gray')
-        axs[3].set_title(opt.model_name)
-        axs[3].set(xlabel = 'PSNR: {:.6f} \nMSE: {:.6f} \nSSIM: {:.6f} \nNRMSE: {:.6f}'.format(scores[2][0], scores[2][1], scores[2][2],scores[2][3]))
+        axs[3].imshow(tensor2image(output),cmap='gray')
+        axs[3].set_title(opt.model_name,fontsize=fnsize)
+        axs[3].set(xlabel = 'PSNR: {:.6f} \nMSE: {:.6f} \nSSIM: {:.6f} \nNRMSE: {:.6f} \nHFEN: {:.6f}'.format(scores[2][0], scores[2][1], scores[2][2],scores[2][3],scores[2][4]))
 
-        axs[4].imshow(input_edges,cmap='gray')
-        axs[4].set_title('Input Edges')
+        axs[4].imshow(tensor2image(input_edges),cmap='gray')
+        axs[4].set_title('Input Edges',fontsize=fnsize)
 
-        axs[5].imshow(output_edges,cmap='gray')
-        axs[5].set_title('Output Edges')
+        axs[5].imshow(tensor2image(output_edges),cmap='gray')
+        axs[5].set_title('Output Edges',fontsize=fnsize)
 
-        axs[6].imshow(label_edges,cmap='gray')
-        axs[6].set_title('Label Edges')
+        axs[6].imshow(tensor2image(label_edges),cmap='gray')
+        axs[6].set_title('Label Edges',fontsize=fnsize)
 
         # remove the x and y ticks
         for ax in axs:
@@ -261,26 +271,72 @@ def save_results_edges(model,path,opt):
         
         # print('Saving {}'.format(file))
         fig.savefig(opt.plot_dir+'{}.png'.format(os.path.splitext(file)[0])) 
+        print('saving plots')
 
-         # display images as subplots
-        fig1, axs = plt.subplots(1, 2, figsize=(10, 8))
-        axs[0].imshow((ref/255.)-(degraded/255.),cmap='gray')
-        axs[0].set_title('Original error (label-input)')
+        cv2.imwrite(opt.preds_dir+'{}.png'.format(os.path.splitext(file)[0]),tensor2image(output))
 
-        axs[1].imshow((ref/255.)-(output/255.),cmap='gray')
-        axs[1].set_title('Model Error (label -output)')
+        cv2.imwrite(opt.pred_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),tensor2image(output_edges))
+        cv2.imwrite(opt.input_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),tensor2image(input_edges))
+        cv2.imwrite(opt.label_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),tensor2image(label_edges))
+
+
+        ref = ref.squeeze().detach().cpu().numpy()
+        degraded = degraded.squeeze().detach().cpu().numpy()
+        output = output.squeeze().detach().cpu().numpy()
+        label_edges = label_edges.squeeze().detach().cpu().numpy()
+        input_edges = input_edges.squeeze().detach().cpu().numpy()
+        output_edges = output_edges.squeeze().detach().cpu().numpy()
+
+         # display errormap as subplots
+        fig_error_map, axs = plt.subplots(1, 4, figsize=(25, 8))
+        error_i= label_edges-input_edges
+        error_o = label_edges-output_edges
+        lmin= label_edges.min()
+        lmax= label_edges.max()
+
+        axs[0].imshow(error_i,cmap='gray')
+        axs[0].set_title('Original error (label edg-inputedg)',fontsize=fnsize)
+
+        axs[1].imshow(error_o,cmap='gray')
+        axs[1].set_title('Model Error (labeledg -outputedg)',fontsize=fnsize)
+
+        axs[2].imshow(error_i,cmap='gray',vmin=lmin,vmax=lmax)
+        axs[2].set_title('Original error (label edg-input edg) \n with label_edg_min_max',fontsize=fnsize)
+
+        axs[3].imshow(error_o,cmap='gray',vmin=lmin,vmax=lmax)
+        axs[3].set_title('Model Error (label edg -output edg) \n with label_edg_min_max',fontsize=fnsize)
 
         # remove the x and y ticks
         for ax in axs:
             ax.set_xticks([])
             ax.set_yticks([])
-        fig1.savefig(opt.plot_dir+'{}_errormap.png'.format(os.path.splitext(file)[0])) 
+        fig_error_map.savefig(opt.plot_dir+'{}_errormap.png'.format(os.path.splitext(file)[0])) 
 
-        cv2.imwrite(opt.preds_dir+'{}.png'.format(os.path.splitext(file)[0]),output)
+          # display edges as subplots
+        fig_edges, axs = plt.subplots(1, 5, figsize=(25, 8))    
+        axs[0].imshow(label_edges,cmap='gray')
+        axs[0].set_title('label edges',fontsize=fnsize)
 
-        cv2.imwrite(opt.pred_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),output_edges)
-        cv2.imwrite(opt.input_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),input_edges)
-        cv2.imwrite(opt.label_edges_dir+'{}.png'.format(os.path.splitext(file)[0]),label_edges)
+        axs[1].imshow(input_edges,cmap='gray')
+        axs[1].set_title('input edge',fontsize=fnsize)
+
+        axs[2].imshow(output_edges,cmap='gray')
+        axs[2].set_title('output edges',fontsize=fnsize)
+
+        axs[3].imshow(input_edges,cmap='gray',vmin=lmin,vmax=lmax)
+        axs[3].set_title('input edge \n with lbledge vmin_vmax',fontsize=fnsize)
+
+        axs[4].imshow(output_edges,cmap='gray',vmin=lmin,vmax=lmax)
+        axs[4].set_title('output edges \n with lbledge vmin_vmax',fontsize=fnsize)
+        # remove the x and y ticks
+        for ax in axs:
+            ax.set_xticks([])
+            ax.set_yticks([])
+
+
+        fig_edges.savefig(opt.plot_dir+'{}_edges.png'.format(os.path.splitext(file)[0])) 
+
+
         plt.close()
 
 

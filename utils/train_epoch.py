@@ -152,7 +152,11 @@ def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_datalo
             if not os.path.exists(opt.checkpoints_dir):
                 os.makedirs(opt.checkpoints_dir)
             path = os.path.join(opt.checkpoints_dir, 'epoch_{}_f_{}.pth'.format(epoch,opt.factor))
-            model.module.save(model.state_dict(),opt,path,optimizer.state_dict(),epoch)
+            if opt.data_parallel:
+                model.module.save(model.state_dict(),opt,path,optimizer.state_dict(),epoch)
+            else:
+                model.save(model.state_dict(),opt,path,optimizer.state_dict(),epoch)
+
     return images,labels,preds
 
 def validate_srdense_3d(opt,model, dataloader,criterion=nn.MSELoss(),addition=False):
@@ -221,7 +225,7 @@ def validate_srdense(opt,model, dataloader,criterion=nn.MSELoss(),addition=False
             # psnr += peak_signal_noise_ratio(output, label)
             # ssim += structural_similarity(output, label)
             hfen += hfen_error(output, label)
-    return loss.item()/count, l1.item()/count,psnr.item()/count, ssim.item()/count,hfen.item()/count
+    return loss.item()/count, l1.item()/count,psnr.item()/count, ssim.item()/count,hfen/count
 
 
 def validate_patch_gan(opt,model, dataloader,criterion=nn.MSELoss()):

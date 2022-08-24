@@ -16,7 +16,7 @@ from utils.general import save_configuration,save_configuration_yaml,LogEdgesOut
 from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir,set_train_dir,set_val_dir,set_downsample_train_val_dir
 import os
 import wandb
-os.environ["CUDA_VISIBLE_DEVICES"]='0'
+os.environ["CUDA_VISIBLE_DEVICES"]='0,1'
 
 def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb=None):
 

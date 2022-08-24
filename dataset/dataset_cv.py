@@ -9,21 +9,35 @@ import copy
 from utils.preprocess import create_dictionary
 from utils.preprocess import image2tensor
 from utils.prepare_test_set_image import crop_pad_kspace
+# from utils.train_utils import read_dictinary
 
 import random
 import cv2
+import pickle
 
+
+def read_dictinary(dir_dict):
+    '''Read annotation dictionary pickle'''
+    a_file = open(dir_dict, "rb")
+    output = pickle.load(a_file)
+    # print(output)
+    a_file.close()
+    # print(output);quit();
+    return output
 
 class MRIDataset(Dataset):
-    def __init__(self, image_dir, label_dir,transform=None,size=50):
+    def __init__(self, image_dir, label_dir,transform=None,size=50, dir_dict=None):
         self.image_dir = image_dir
         self.label_dir = label_dir
         self.transform = transform
         self.images = os.listdir(image_dir)
         self.labels = os.listdir(label_dir)
-        assert len(self.images) == len(self.labels), ('images folder and label folder should have the same length, but got '
-                                                f'{len(self.images)} and {len(self.labels)}.')
-        self.dir_dict = create_dictionary(image_dir,label_dir)
+        # assert len(self.images) == len(self.labels), ('images folder and label folder should have the same length, but got '
+        #                                         f'{len(self.images)} and {len(self.labels)}.')  #does not work for multiple gaussian images
+        if dir_dict:
+            self.dir_dict = read_dictinary(dir_dict)
+        else:
+            self.dir_dict = create_dictionary(image_dir,label_dir)
         self.indices = [[] for _ in range(3)]
         self.size = size
         for i, x in enumerate(self.images):
@@ -47,7 +61,11 @@ class MRIDataset(Dataset):
     def __getitem__(self, index):
         dict_key = self.images[index]
         img_path = os.path.join(self.image_dir, self.images[index])
-        label_path = os.path.join(self.label_dir, self.dir_dict[dict_key])
+
+        #if dict keys and values does not contain .png
+        dict_key_split = dict_key.split('.')
+        label_name = self.dir_dict[dict_key_split[0]]+'.png'   
+        label_path = os.path.join(self.label_dir, label_name)
 
         image = cv2.imread(img_path).astype(np.float32) / 255.
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

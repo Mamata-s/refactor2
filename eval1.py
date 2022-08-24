@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import argparse
 import statistics
 import json
+import numpy as np
 
 # from models.densenet_new import SRDenseNet
 
@@ -29,6 +30,7 @@ from utils.image_quality_assessment import PSNR,SSIM
 from utils.general import min_max_normalize, NRMSELoss
 import os
 import numpy as np
+from utils.preprocess import hfen_error
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -37,7 +39,10 @@ warnings.filterwarnings("ignore")
 
 def load_model(opt):
     checkpoint = torch.load(opt.checkpoint,map_location=torch.device(opt.device))
-    model = SRDenseNet()
+    growth_rate = checkpoint['growth_rate']
+    num_blocks = checkpoint['num_blocks']
+    num_layers =checkpoint['num_layers']
+    model = SRDenseNet(growth_rate=growth_rate,num_blocks=num_blocks,num_layers=num_layers)
     state_dict = model.state_dict()
     for n, p in checkpoint['model_state_dict'].items():
         # new_key = n[7:]
@@ -124,28 +129,39 @@ def predict_downsample_edges(opt,model,image_path,label_path,downsample_path,dev
     init_ssim = ssim(degraded, ref).item()
     init_mse = mse(degraded, ref).item()
     init_nrmse = nrmse(ref,degraded).item()
+    
 
     model_psnr = psnr(pre, ref).item()
     model_ssim = ssim(pre, ref).item()
     model_mse = mse(pre, ref).item()
     model_nrmse = nrmse(ref, pre).item()
 
+
+    ref_arr = (ref.squeeze().detach().cpu().numpy()) *255.
+    degraded_arr = (degraded.squeeze().detach().cpu().numpy())*255.
+    pre_arr = (pre.squeeze().detach().cpu().numpy())*255.
+    init_hfen = hfen_error(ref_arr,degraded_arr).astype(np.float16).item()
+    model_hfen = hfen_error(ref_arr,pre_arr).astype(np.float16).item()
+    # print(model_hfen)
+
     return  {'init_psnr':init_psnr,
             'init_ssim': init_ssim,
             'init_mse': init_mse,
             'init_nrmse': init_nrmse,
+            'init_hfen': init_hfen,
             'model_psnr':model_psnr,
             'model_ssim':model_ssim,
             'model_mse': model_mse,
-            'model_nrmse':model_nrmse}
+            'model_nrmse':model_nrmse,
+            'model_hfen': model_hfen}
    
 
 def evaluate_model_edges(opt):
     dir_dict = create_dictionary(opt.image_path,opt.label_path)
     downsample_dict = create_dictionary(opt.image_path,opt.downsample_path)
     
-    initial ={'psnr':[],'ssim':[],'mse':[],'nrmse':[]}
-    model = {'psnr':[],'ssim':[],'mse':[],'nrmse':[]}
+    initial ={'psnr':[],'ssim':[],'mse':[],'nrmse':[],'hfen':[]}
+    model = {'psnr':[],'ssim':[],'mse':[],'nrmse':[],'hfen':[]}
     for file in os.listdir(opt.image_path):  
         # perform super-resolution
         image_path = os.path.join(opt.image_path,file)
@@ -164,10 +180,12 @@ def evaluate_model_edges(opt):
         initial['ssim'].append(output['init_ssim'])
         initial['mse'].append(output['init_mse'])
         initial['nrmse'].append(output['init_nrmse'])
+        initial['hfen'].append(output['init_hfen'])
         model['psnr'].append(output['model_psnr'])
         model['ssim'].append(output['model_ssim'])
         model['mse'].append(output['model_mse'])
         model['nrmse'].append(output['model_nrmse'])
+        model['hfen'].append(output['model_hfen'])
 
     #print min, max std and median
     print('metric for initial')
@@ -175,7 +193,10 @@ def evaluate_model_edges(opt):
         print('key is',key) 
         print('min : ',min(initial[key]))
         print('max : ',max(initial[key]))  
-        print( ' std :', statistics.pstdev(initial[key]))
+        if key == 'hfen':
+            pass
+        else:
+            print( ' std :', statistics.pstdev(initial[key]))
         print( ' mean :', statistics.mean(initial[key]))
         print( ' median :', statistics.median(initial[key]))
         print('************************************************************************************')
@@ -185,7 +206,10 @@ def evaluate_model_edges(opt):
         print('key is',key) 
         print('min : ',min(model[key])) 
         print('max : ',max(model[key])) 
-        print( ' std :', statistics.pstdev(model[key]))
+        if key == 'hfen':
+            pass
+        else:
+            print( ' std :', statistics.pstdev(initial[key]))
         print( ' mean :', statistics.mean(model[key]))
         print( ' median :', statistics.median(model[key]))
         print('************************************************************************************')
@@ -202,7 +226,7 @@ if __name__ == '__main__':
     parser.add_argument('--model-name', type=str, metavar='',help='name of model',default='dense')
     # for loading the val dataset path
     parser.add_argument('--factor', type=int, metavar='',required=False,help='resolution factor',default=2)
-    parser.add_argument('--label-path',type=str,required=False,help='path for label images',default='resolution_dataset25_small4/z_axis/label/test')
+    parser.add_argument('--label-path',type=str,required=False,help='path for label images',default='gaussian_dataset25/z_axis/label/test')
     # parser.add_argument('--edges',
     #                 help='add the output of model to input images for getting result image', action='store_true')
     parser.add_argument('--edge-type',type=str,default='canny',help='type of edges',required=False,choices=['canny','downsample'])
@@ -211,10 +235,15 @@ if __name__ == '__main__':
     opt = parser.parse_args()
 
 
-  
     opt.image_path = f'resolution_dataset25_small4/z_axis/factor_{opt.factor}/test'
     downsample_path_factor = opt.factor + opt.factor
     opt.downsample_path = f'resolution_dataset25_small4/z_axis/factor_{downsample_path_factor}/test'
+
+    # opt.image_path = f'gaussian_dataset25/z_axis/factor_{opt.factor}/test'
+    # downsample_path_factor = opt.factor + opt.factor
+    # opt.downsample_path = f'gaussian_dataset25/z_axis/factor_{downsample_path_factor}/test'
+
+
 
     '''set device'''
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
