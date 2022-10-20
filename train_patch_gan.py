@@ -12,13 +12,32 @@ from utils.train_utils import adjust_learning_rate
 from utils.train_epoch import train_epoch_patch_gan,validate_patch_gan
 from utils.preprocess import apply_model
 from utils.general import save_configuration,save_configuration_yaml,log_output_images,LogOutputs
-from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir
+from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir,set_train_dir,set_val_dir
 import os
 import wandb
+from utils.image_quality_assessment import PSNR,SSIM
+from models.densenet_smchannel import SRDenseNet
 
 os.environ["CUDA_VISIBLE_DEVICES"]='0,1' 
 
-def train(opt,model,train_dataloader,eval_dataloader,wandb=None):
+def load_pretrained(checkpoint,device):
+    checkpoint = torch.load(checkpoint,map_location=torch.device(device))
+    growth_rate = checkpoint['growth_rate']
+    num_blocks = checkpoint['num_blocks']
+    num_layers =checkpoint['num_layers']
+    model = SRDenseNet(growth_rate=growth_rate,num_blocks=num_blocks,num_layers=num_layers).to(device)
+    state_dict = model.state_dict()
+    for n, p in checkpoint['model_state_dict'].items():
+        new_key = n[7:]
+        # new_key = n
+        # print(new_key)
+        if new_key in state_dict.keys():
+            state_dict[new_key].copy_(p)
+        else:
+            raise KeyError(new_key)
+    return model,growth_rate, num_blocks, num_layers
+
+def train(opt,model,train_datasets,train_dataloader,eval_dataloader,wandb=None):
     if opt.wandb:
         log_table_output = LogOutputs()
     best_weights = copy.deepcopy(model.state_dict())
@@ -34,7 +53,7 @@ def train(opt,model,train_dataloader,eval_dataloader,wandb=None):
         '''train one epoch and evaluate the model'''
         epoch_losses = create_loss_meters_gan()
       
-        images, preds, labels = train_epoch_patch_gan(opt,model,train_dataloader,epoch,epoch_losses)
+        output = train_epoch_patch_gan(opt,model,train_datasets,train_dataloader,epoch,epoch_losses)
         eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen = validate_patch_gan(opt,model, eval_dataloader)
 
         if opt.wandb:
@@ -54,9 +73,8 @@ def train(opt,model,train_dataloader,eval_dataloader,wandb=None):
             })
             # log_output_images(images, preds, labels) #overwrite on same table on every epoch
             if epoch % opt.n_freq == 0:
-                log_table_output.append_list(epoch,images,labels,preds)  #create a class with list and function to loop through list and add to log table
-
-        apply_model(model.net_G,epoch,opt,addition=opt.addition)
+                log_table_output.append_list(epoch=epoch,images = output['lr'],labels = output['hr'],predictions = output['preds'])  #create a class with list and function to loop through list and add to log table
+        # apply_model(model.net_G,epoch,opt,addition=opt.addition)
         print('eval psnr: {:.4f}'.format(eval_psnr))
 
         if eval_psnr > best_psnr:
@@ -79,27 +97,22 @@ def train(opt,model,train_dataloader,eval_dataloader,wandb=None):
         print("logging output table")
         log_table_output.log_images(columns = ["epoch","image", "pred", "label"],wandb=wandb) 
 
+    opt.generator = None  #remove model from yaml file before saving configuration
     path = metric_dict.save_dict(opt)
     _ = save_configuration_yaml(opt)
     # print(metric_dict.log_dict)
 
-    # path="best_weights_factor_{}_epoch_{}.pth".format(opt.factor,best_epoch)
-    # torch.save(best_weights, os.path.join(opt.checkpoints_dir, path))
-
     path="best_weights_factor_{}_epoch_{}.pth".format(opt.factor,best_epoch)
     path = os.path.join(opt.checkpoints_dir, path)
-    model.save(best_weights,opt,path,best_epoch)
+    model.save(model,best_weights,opt,path,best_epoch)
     print('model saved')
 
-    # if opt.wandb:
-    #     torch.onnx.export(model.net_G,images,"model.onnx")
-    #     wandb.save("model.onnx")
 
 
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/patch_gan_resunet.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/patch_gan/patch_gan_image_new.yaml')
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
 
@@ -117,20 +130,25 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     opt.device = device
 
-
-    '''Set the addition argument value for saving epoch images'''
-    check=True
-    for arg in vars(opt):
-     if arg in ['addition']:
-         check=False
-    if check: opt.addition=False
+    set_val_dir(opt)  #setting the training dataset dir
+    set_train_dir(opt)  #setting the validation set dir
 
     '''load dataset (loading dataset based on dataset name and factor on arguments)'''
     train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset(opt)
 
     '''get the epoch image path to save the image output of every epoch for given single image'''
-    opt.epoch_image_path = '{}/{}/factor_{}/train/lr_f1_160_{}_z_46.png'.format(opt.dataset_size,opt.dataset_name, opt.factor,opt.factor)
+    # opt.epoch_image_path = '{}/{}/factor_{}/train/lr_f1_160_{}_z_46.png'.format(opt.dataset_size,opt.dataset_name, opt.factor,opt.factor)
 
+
+    '''load model'''
+    if opt.pretrained_generator:
+        opt.generator,growth_rate, num_blocks, num_layers = load_pretrained(checkpoint= opt.pretrained_checkpoint, device = opt.device)
+        #set these parameters to save while saving the checkpoints
+        opt.growth_rate = growth_rate
+        opt.num_blocks = num_blocks
+        opt.num_layers = num_layers
+        print("Pre Trained Model Loaded")
+  
     '''load model'''
     model = load_model(opt)
 
@@ -138,13 +156,18 @@ if __name__ == "__main__":
     set_outputs_dir(opt) 
     set_training_metric_dir(opt) 
     set_plots_dir(opt)
-
+     
+    #   setting metric for evaluation
+    psnr = PSNR()
+    ssim = SSIM()
+    opt.psnr = psnr.to(device=opt.device, memory_format=torch.channels_last, non_blocking=True)
+    opt.ssim = ssim.to(device=opt.device, memory_format=torch.channels_last, non_blocking=True)
 
     '''wrap model for data parallelism'''
     num_of_gpus = torch.cuda.device_count()
     if num_of_gpus>1:
         model = nn.DataParallel(model,device_ids=[*range(num_of_gpus)])
-        model=model.module
+        model = model.module
 
 
     print('training for factor ',opt.factor)
@@ -164,8 +187,8 @@ if __name__ == "__main__":
     else:
         wandb=None
 
-    print(model.net_G)
-    train(opt,model,train_dataloader,eval_dataloader,wandb = wandb)
+    # print(model.net_G)
+    train(opt,model,train_datasets,train_dataloader,eval_dataloader,wandb = wandb)
 
     if opt.wandb:
         wandb.unwatch(model)

@@ -1,0 +1,51 @@
+#configuration file
+
+
+model_name: 'srdense'
+exp_name: 'combined_model_high_freq_edges_factor2'
+project_name: 'super_resolution'
+wandb: True 
+
+#dataset
+dataset_size: gaussian_dataset25_mul
+dataset_name: 'z_axis'
+
+#training
+num_epochs: 205
+num_workers: 8
+seed: 123
+lr: 0.0001
+lr_decay_factor: 0.9  #lr is decay by 10% after every 150th or 250th epoch
+n_freq: 20 # model checkpoint saving frequency
+train_batch_size: 8
+val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
+# opt.device: cpu or gpu during training
+factor: 2
+dir_dict: 'gaussian_dataset25_mul/annotation.pkl'
+val_dir_dict: 'gaussian_dataset25_mul/val_annotation.pkl'
+
+
+
+#parameter added for mask training
+apply_mask: True
+mask_threshold: 25
+
+#srdense
+criterion: mse
+optimizer: sgd
+momentum: 0.9
+weight_decay: 0
+
+
+
+init: 'norm' 
+# init: 'kaiming'  #options: norm,xavier,kaiming
+growth_rate: 7
+num_blocks: 5
+num_layers: 5
+weights_file: None
+scale: 4
+patch: False
+
+note: 'Training srdense net which takes both lr_edge and lr_image as input and gives both predicted edges and prdicted images as output'
+

@@ -7,7 +7,7 @@ import numpy as np
 import utils as ut
 import copy
 from utils.preprocess import create_dictionary
-from utils.preprocess import image2tensor
+from utils.preprocess import image2tensor,get_high_freq
 from utils.prepare_test_set_image import crop_pad_kspace
 # from utils.train_utils import read_dictinary
 
@@ -27,6 +27,11 @@ def read_dictinary(dir_dict):
 
 class MRIDataset(Dataset):
     def __init__(self, image_dir, label_dir,transform=None,size=50, dir_dict=None):
+        '''
+        image_dir: directory path of lr images
+        label_dir: directory path of label images
+        dir_dict: directory path of annotation dictionary
+        '''
         self.image_dir = image_dir
         self.label_dir = label_dir
         self.transform = transform
@@ -40,37 +45,48 @@ class MRIDataset(Dataset):
             self.dir_dict = create_dictionary(image_dir,label_dir)
         self.indices = [[] for _ in range(3)]
         self.size = size
-        for i, x in enumerate(self.images):
-            img_path = os.path.join(self.image_dir, x)
-            image = np.array(Image.open(img_path).convert('L'))  #to convert to grayscale
-            if self.size==25:
-                if image.shape[0]== 512 and image.shape[1]== 304 : self.indices[0].append(i)
-                if image.shape[0]== 720 and image.shape[1]== 304 : self.indices[1].append(i)
-                if image.shape[0]== 720 and image.shape[1]== 512 : self.indices[2].append(i)
-            else:
-                if image.shape[0]== 256 and image.shape[1]== 152 : self.indices[0].append(i)
-                if image.shape[0]== 360 and image.shape[1]== 152 : self.indices[1].append(i)
-                if image.shape[0]== 360 and image.shape[1]== 256 : self.indices[2].append(i)
+        # for i, x in enumerate(self.images):
+        #     img_path = os.path.join(self.image_dir, x)
+        #     image = np.array(Image.open(img_path).convert('L'))  #to convert to grayscale
+        #     if self.size==25:
+        #         if image.shape[0]== 512 and image.shape[1]== 304 : self.indices[0].append(i)
+        #         if image.shape[0]== 720 and image.shape[1]== 304 : self.indices[1].append(i)
+        #         if image.shape[0]== 720 and image.shape[1]== 512 : self.indices[2].append(i)
+        #     else:
+        #         if image.shape[0]== 256 and image.shape[1]== 152 : self.indices[0].append(i)
+        #         if image.shape[0]== 360 and image.shape[1]== 152 : self.indices[1].append(i)
+        #         if image.shape[0]== 360 and image.shape[1]== 256 : self.indices[2].append(i)
 
     def __len__(self):
         return len(self.images)
 
-    def classes(self):
-        return self.indices
+    # def classes(self):
+    #     return self.indices
 
     def __getitem__(self, index):
         dict_key = self.images[index]
+        # print(self.dir_dict)
+        # quit();
+
         img_path = os.path.join(self.image_dir, self.images[index])
 
         #if dict keys and values does not contain .png
-        dict_key_split = dict_key.split('.')
-        label_name = self.dir_dict[dict_key_split[0]]+'.png'   
+        label_name = self.dir_dict[dict_key] 
         label_path = os.path.join(self.label_dir, label_name)
+
+        # print("image path",img_path)
+        # print("label path",label_path)
+        # print("***************************************************************")
 
         image = cv2.imread(img_path).astype(np.float32) / 255.
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        label = cv2.imread(label_path).astype(np.float32) / 255.
+        label = cv2.imread(label_path)
+        # print(label.shape)
+        label = label.astype(np.float32) / 255.
         label = cv2.cvtColor(label, cv2.COLOR_BGR2GRAY)
+
+        # print(label_path)
+        # print(img_path)
 
 
         # Convert image data into Tensor stream format (PyTorch).
@@ -85,7 +101,7 @@ class MRIDataset(Dataset):
         # image= torch.unsqueeze(image.float(),0)
         # label = torch.unsqueeze(label.float(),0)
     
-        return image,label
+        return {'image': image, 'label':label}
 
 
 class RdnSampler():
@@ -146,6 +162,10 @@ class MRIDatasetPatch(Dataset):
         img_path = os.path.join(self.image_dir, self.images[index])
         label_path = os.path.join(self.label_dir, self.dir_dict[dict_key])
 
+        print("image path",img_path)
+        print("***************************************************************")
+        print("label path",label_path)
+
         image = cv2.imread(img_path, cv2.IMREAD_UNCHANGED).astype(np.float32) / 255.
         label = cv2.imread(label_path, cv2.IMREAD_UNCHANGED).astype(np.float32) / 255.
 
@@ -169,206 +189,8 @@ class MRIDatasetPatch(Dataset):
 
 
 
-# class MRIDatasetEdges(Dataset):
-#     def __init__(self, image_dir, label_dir,transform=None,size=50):
-#         self.image_dir = image_dir
-#         self.label_dir = label_dir
-#         self.transform = transform
-#         self.images = os.listdir(image_dir)
-#         self.labels = os.listdir(label_dir)
-#         assert len(self.images) == len(self.labels), ('images folder and label folder should have the same length, but got '
-#                                                 f'{len(self.images)} and {len(self.labels)}.')
-#         self.dir_dict = create_dictionary(image_dir,label_dir)
-#         self.indices = [[] for _ in range(3)]
-#         self.size = size
-#         for i, x in enumerate(self.images):
-#             img_path = os.path.join(self.image_dir, x)
-#             image = np.array(Image.open(img_path).convert('L'))  #to convert to grayscale
-#             if self.size==25:
-#                 if image.shape[0]== 512 and image.shape[1]== 304 : self.indices[0].append(i)
-#                 if image.shape[0]== 720 and image.shape[1]== 304 : self.indices[1].append(i)
-#                 if image.shape[0]== 720 and image.shape[1]== 512 : self.indices[2].append(i)
-#             else:
-#                 if image.shape[0]== 256 and image.shape[1]== 152 : self.indices[0].append(i)
-#                 if image.shape[0]== 360 and image.shape[1]== 152 : self.indices[1].append(i)
-#                 if image.shape[0]== 360 and image.shape[1]== 256 : self.indices[2].append(i)
-
-#     def __len__(self):
-#         return len(self.images)
-
-#     def classes(self):
-#         return self.indices
-
-#     def __getitem__(self, index):
-#         dict_key = self.images[index]
-#         img_path = os.path.join(self.image_dir, self.images[index])
-#         label_path = os.path.join(self.label_dir, self.dir_dict[dict_key])
-
-#         image = cv2.imread(img_path)
-#         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-#         label = cv2.imread(label_path)
-#         label = cv2.cvtColor(label, cv2.COLOR_BGR2GRAY)
-
-#         image_blur = cv2.GaussianBlur(image, (5,5), 0) 
-
-#         lr_edges = cv2.Canny(image = image_blur, threshold1=1, threshold2=20) # Canny Edge Detection
-#         # lr_edges = 255-lr_edges
-
-#         image = image.astype(np.float32) / 255.
-#         label = label.astype(np.float32) / 255.
-#         lr_edges = lr_edges.astype(np.float32) / 255.
-    
-
-#         # Convert image data into Tensor stream format (PyTorch).
-#         # Note: The range of input and output is between [0, 1]
-#         image = image2tensor(image, range_norm=False, half=False)
-#         label = image2tensor(label, range_norm=False, half=False)
-#         lr_edges = image2tensor(lr_edges, range_norm=False, half=False)
-
-#         if self.transform is not None:
-#             image = self.transform(image)
-#             label = self.transform(label)
-#             lr_edges = self.transform(lr_edges)
-
-#         # image= torch.unsqueeze(image.float(),0)
-#         # label = torch.unsqueeze(label.float(),0)
-    
-#         return {'image':image,
-#                 'label':label,
-#                 'lr_edges':lr_edges
-#                 }
-
-
-# class MRIDatasetDownsampleEdges(Dataset):
-#     def __init__(self, image_dir, label_dir,downsample_dir,transform=None,size=50):
-#         self.image_dir = image_dir
-#         self.label_dir = label_dir
-#         self.downsample_dir = downsample_dir
-#         self.transform = transform
-#         self.images = os.listdir(image_dir)
-#         self.labels = os.listdir(label_dir)
-#         self.downsamples = os.listdir(downsample_dir)
-#         assert len(self.images) == len(self.labels), ('images folder and label folder should have the same length, but got '
-#                                                 f'{len(self.images)} and {len(self.labels)}.')
-#         assert len(self.images) == len(self.downsamples), ('images folder and downsample folder should have the same length, but got '
-#                                                 f'{len(self.images)} and {len(self.downsamples)}.')                                        
-#         self.dir_dict = create_dictionary(image_dir,label_dir)
-#         self.dir_downsample_dict = create_dictionary(image_dir,downsample_dir)
-#         self.indices = [[] for _ in range(3)]
-#         self.size = size
-#         for i, x in enumerate(self.images):
-#             img_path = os.path.join(self.image_dir, x)
-#             image = np.array(Image.open(img_path).convert('L'))  #to convert to grayscale
-#             if self.size==25:
-#                 if image.shape[0]== 512 and image.shape[1]== 304 : self.indices[0].append(i)
-#                 if image.shape[0]== 720 and image.shape[1]== 304 : self.indices[1].append(i)
-#                 if image.shape[0]== 720 and image.shape[1]== 512 : self.indices[2].append(i)
-#             else:
-#                 if image.shape[0]== 256 and image.shape[1]== 152 : self.indices[0].append(i)
-#                 if image.shape[0]== 360 and image.shape[1]== 152 : self.indices[1].append(i)
-#                 if image.shape[0]== 360 and image.shape[1]== 256 : self.indices[2].append(i)
-
-#     def __len__(self):
-#         return len(self.images)
-
-#     def classes(self):
-#         return self.indices
-
-#     def __getitem__(self, index):
-#         dict_key = self.images[index]
-#         img_path = os.path.join(self.image_dir, self.images[index])
-#         label_path = os.path.join(self.label_dir, self.dir_dict[dict_key])
-#         downsample_path = os.path.join(self.downsample_dir,self.dir_downsample_dict[dict_key])
-
-#         image = cv2.imread(img_path)
-#         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-#         label = cv2.imread(label_path)
-#         label = cv2.cvtColor(label, cv2.COLOR_BGR2GRAY)
-
-#         downsample = cv2.imread(downsample_path)
-#         downsample = cv2.cvtColor(downsample, cv2.COLOR_BGR2GRAY)
-
-    
-#         image = image.astype(np.float32) / 255.
-#         label = label.astype(np.float32) / 255.
-#         downsample = downsample.astype(np.float32) / 255.
-    
-
-#         # Convert image data into Tensor stream format (PyTorch).
-#         # Note: The range of input and output is between [0, 1]
-#         image = image2tensor(image, range_norm=False, half=False)
-#         label = image2tensor(label, range_norm=False, half=False)
-#         downsample = image2tensor(downsample, range_norm=False, half=False)
-#         lr_edges = image-downsample
-
-#         if self.transform is not None:
-#             image = self.transform(image)
-#             label = self.transform(label)
-#             lr_edges = self.transform(lr_edges)
-    
-#         return image,label,lr_edges
-
-
-# class MRIDatasetPatchDownsampleEdges(Dataset):
-#     def __init__(self, image_dir, label_dir,downsample_dir,transform=None):
-#         self.image_dir = image_dir
-#         self.label_dir = label_dir
-#         self.downsample_dir = downsample_dir
-#         self.transform = transform
-#         self.images = os.listdir(image_dir)
-#         self.labels = os.listdir(label_dir)
-#         self.downsamples = os.listdir(downsample_dir)
-#         assert len(self.images) == len(self.labels), ('images folder and label folder should have the same length, but got '
-#                                                 f'{len(self.images)} and {len(self.labels)}.')
-#         assert len(self.images) == len(self.downsamples), ('images folder and downsample folder should have the same length, but got '
-#                                                 f'{len(self.images)} and {len(self.downsamples)}.')                                        
-#         self.dir_dict = create_dictionary(image_dir,label_dir)
-#         self.dir_downsample_dict = create_dictionary(image_dir,downsample_dir)
-#         self.indices = [[] for _ in range(3)]
-#     def __len__(self):
-#         return len(self.images)
-
-#     def __getitem__(self, index):
-#         dict_key = self.images[index]
-#         img_path = os.path.join(self.image_dir, self.images[index])
-#         label_path = os.path.join(self.label_dir, self.dir_dict[dict_key])
-#         downsample_path = os.path.join(self.downsample_dir,self.dir_downsample_dict[dict_key])
-
-#         image = cv2.imread(img_path)
-#         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-#         label = cv2.imread(label_path)
-#         label = cv2.cvtColor(label, cv2.COLOR_BGR2GRAY)
-
-#         downsample = cv2.imread(downsample_path)
-#         downsample = cv2.cvtColor(downsample, cv2.COLOR_BGR2GRAY)
-
-
-#         image = image.astype(np.float32) / 255.
-#         label = label.astype(np.float32) / 255.
-#         downsample = downsample.astype(np.float32)/255.
-
-
-#         # Convert image data into Tensor stream format (PyTorch).
-#         # Note: The range of input and output is between [0, 1]
-#         image = image2tensor(image, range_norm=False, half=False)
-#         label = image2tensor(label, range_norm=False, half=False)
-#         downsample = image2tensor(downsample,range_norm=False,half=False)
-
-#         lr_edges = image-downsample
-        
-#         if self.transform is not None:
-#             image = self.transform(image)
-#             label = self.transform(label)
-#             lr_edges = self.transform(lr_edges)
-
-    
-    
-#         return image,label,lr_edges
-
-
-
-class MRIDatasetEdges(Dataset):
-    def __init__(self, image_dir, label_dir,transform=None,threshold=25,size=50,apply_mask=False):
+class MRIDatasetCannyEdges(Dataset):
+    def __init__(self, image_dir, label_dir,transform=None,threshold=25,apply_mask=False, dir_dict=None):
         self.image_dir = image_dir
         self.label_dir = label_dir
         self.transform = transform
@@ -378,28 +200,14 @@ class MRIDatasetEdges(Dataset):
         self.threshold = threshold
         self.mask =None
         self.isset_mask = False
-        assert len(self.images) == len(self.labels), ('images folder and label folder should have the same length, but got '
-                                                f'{len(self.images)} and {len(self.labels)}.')
-        self.dir_dict = create_dictionary(image_dir,label_dir)
-        self.indices = [[] for _ in range(3)]
-        self.size = size
-        for i, x in enumerate(self.images):
-            img_path = os.path.join(self.image_dir, x)
-            image = np.array(Image.open(img_path).convert('L'))  #to convert to grayscale
-            if self.size==25:
-                if image.shape[0]== 512 and image.shape[1]== 304 : self.indices[0].append(i)
-                if image.shape[0]== 720 and image.shape[1]== 304 : self.indices[1].append(i)
-                if image.shape[0]== 720 and image.shape[1]== 512 : self.indices[2].append(i)
-            else:
-                if image.shape[0]== 256 and image.shape[1]== 152 : self.indices[0].append(i)
-                if image.shape[0]== 360 and image.shape[1]== 152 : self.indices[1].append(i)
-                if image.shape[0]== 360 and image.shape[1]== 256 : self.indices[2].append(i)
+       
+        if dir_dict: # directory of the dictionary
+            self.dir_dict = read_dictinary(dir_dict)
+        else:
+            self.dir_dict = create_dictionary(image_dir,label_dir)
 
     def __len__(self):
         return len(self.images)
-
-    def classes(self):
-        return self.indices
 
     def create_mask(self,ref):
         new_ref = ref
@@ -417,8 +225,13 @@ class MRIDatasetEdges(Dataset):
 
     def __getitem__(self, index):
         dict_key = self.images[index]
+       
         img_path = os.path.join(self.image_dir, self.images[index])
         label_path = os.path.join(self.label_dir, self.dir_dict[dict_key])
+
+        # print("image path",img_path)
+        # print("label path",label_path)
+        # print("********************************************************************************")
 
         image = cv2.imread(img_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -427,13 +240,92 @@ class MRIDatasetEdges(Dataset):
 
         image_blur = cv2.GaussianBlur(image, (15,15), 0) 
         lr_edges = cv2.Canny(image = image_blur, threshold1=1, threshold2=20) # Canny Edge Detection
-    
+        # hr_edges = label - image
 
-        # if self.isset_mask:
-        #     pass
-        # else:
-        #     print('mask created')
-        #     self.create_mask(label)
+        self.create_mask(label)
+
+
+        image = image.astype(np.float32)/ 255.
+        label = label.astype(np.float32) / 255.
+        lr_edges = lr_edges.astype(np.float32) / 255.
+        # hr_edges = hr_edges.astype(np.float32) / 255.
+
+
+        # Convert image data into Tensor stream format (PyTorch).
+        # Note: The range of input and output is between [0, 1]
+        image = image2tensor(image, range_norm=False, half=False)
+        label = image2tensor(label, range_norm=False, half=False)
+        lr_edges = image2tensor(lr_edges, range_norm=False, half=False)
+        # hr_edges = image2tensor(hr_edges,range_norm=False, half=False)
+
+
+        if self.transform is not None:
+            image = self.transform(image)
+            label = self.transform(label)
+            lr_edges = self.transform(lr_edges)
+            self.mask = self.transform(self.mask)
+
+        return {'image':image,
+                'label':label,
+                'lr_edges':lr_edges,
+                # 'hr_edges': hr_edges,
+                'mask':self.mask
+                }
+
+
+
+
+class MRIDatasetHighFreqEdges(Dataset):
+    def __init__(self, image_dir, label_dir,transform=None,threshold=25,apply_mask=False, dir_dict=None, edge_factor=4):
+        self.image_dir = image_dir
+        self.label_dir = label_dir
+        self.transform = transform
+        self.images = os.listdir(image_dir)
+        self.labels = os.listdir(label_dir)
+        self.apply_mask = apply_mask
+        self.threshold = threshold
+        self.mask =None
+        self.isset_mask = False
+        self.edge_factor = edge_factor
+       
+        if dir_dict: # directory of the dictionary
+            self.dir_dict = read_dictinary(dir_dict)
+        else:
+            self.dir_dict = create_dictionary(image_dir,label_dir)
+
+    def __len__(self):
+        return len(self.images)
+
+    def create_mask(self,ref):
+        new_ref = ref
+        new_ref[new_ref <= self.threshold] = 0
+
+        mask = np.ones(new_ref.shape).astype(np.float32)
+        for i in range(new_ref.shape[0]):
+            for j in range(new_ref.shape[1]):
+                if new_ref[i,j]==0:
+                    mask[i,j]=0
+        mask = image2tensor(mask, range_norm=False, half=False)
+        self.mask = mask
+        self.isset_mask = True
+        return 1
+
+    def __getitem__(self, index):
+        dict_key = self.images[index]
+       
+        img_path = os.path.join(self.image_dir, self.images[index])
+        label_path = os.path.join(self.label_dir, self.dir_dict[dict_key])
+
+        # print("image path",img_path)
+        # print("label path",label_path)
+        # print("********************************************************************************")
+
+        image = cv2.imread(img_path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        label = cv2.imread(label_path)
+        label = cv2.cvtColor(label, cv2.COLOR_BGR2GRAY)
+
+        lr_edges= get_high_freq(image,factor=self.edge_factor)
 
         self.create_mask(label)
 
@@ -448,14 +340,7 @@ class MRIDatasetEdges(Dataset):
         image = image2tensor(image, range_norm=False, half=False)
         label = image2tensor(label, range_norm=False, half=False)
         lr_edges = image2tensor(lr_edges, range_norm=False, half=False)
-
-        #applying mask
-        if self.apply_mask:
-            pass
-            # image = self.mask *image
-            # label = self.mask * label
-            # lr_edges = self.mask * lr_edges
-
+    
 
         if self.transform is not None:
             image = self.transform(image)
@@ -463,10 +348,6 @@ class MRIDatasetEdges(Dataset):
             lr_edges = self.transform(lr_edges)
             self.mask = self.transform(self.mask)
 
-
-        # image= torch.unsqueeze(image.float(),0)
-        # label = torch.unsqueeze(label.float(),0)
-    
         return {'image':image,
                 'label':label,
                 'lr_edges':lr_edges,
@@ -477,8 +358,23 @@ class MRIDatasetEdges(Dataset):
 
 
 
+
+
+
+
+
 class MRIDatasetDownsampleEdges(Dataset):
-    def __init__(self, image_dir, label_dir,downsample_dir,transform=None,threshold=25,factor=2,size=50,apply_mask=False):
+    def __init__(self, image_dir, label_dir,downsample_dir,transform=None,threshold=25,factor=2,size=50,apply_mask=False, dir_dict = None):
+        '''
+        image_dir: directory path of lr image
+        label_dir: directory path of labels
+        downsample_dir: directory path of downsampe image to calculate the input edges
+        threshold: threshold value used to create mask for mask training
+        factor: training factor
+        size: size of dataset (25um or 50um) used for clusteing (not in use)
+        apply_mask: Boolean (True for mask training)
+        dir_dict: directory for annotation dictionary
+        '''
         self.image_dir = image_dir
         self.label_dir = label_dir
         self.downsample_dir = downsample_dir
@@ -491,32 +387,38 @@ class MRIDatasetDownsampleEdges(Dataset):
         self.apply_mask=apply_mask
         self.mask = None
         self.isset_mask = False
-        assert len(self.images) == len(self.labels), ('images folder and label folder should have the same length, but got '
-                                                f'{len(self.images)} and {len(self.labels)}.') 
-        assert len(self.images) == len(self.downsamples), ('images folder and downsample folder should have the same length, but got '
-                                                f'{len(self.images)} and {len(self.downsamples)}.')                                                                    
-        self.downsample_dict = create_dictionary(image_dir,downsample_dir)
-        self.dir_dict = create_dictionary(image_dir,label_dir)
+        # assert len(self.images) == len(self.labels), ('images folder and label folder should have the same length, but got '
+        #                                         f'{len(self.images)} and {len(self.labels)}.') 
+        # assert len(self.images) == len(self.downsamples), ('images folder and downsample folder should have the same length, but got '
+        #                                         f'{len(self.images)} and {len(self.downsamples)}.') 
+        # 
+        if dir_dict:
+            self.dir_dict = read_dictinary(dir_dict)
+        else:
+            self.dir_dict = create_dictionary(image_dir,label_dir)
+
+        # self.downsample_dict = create_dictionary(image_dir,downsample_dir)
+        # self.dir_dict = create_dictionary(image_dir,label_dir)
 
         self.indices = [[] for _ in range(3)]
         self.size = size
-        for i, x in enumerate(self.images):
-            img_path = os.path.join(self.image_dir, x)
-            image = np.array(Image.open(img_path).convert('L'))  #to convert to grayscale
-            if self.size==25:
-                if image.shape[0]== 512 and image.shape[1]== 304 : self.indices[0].append(i)
-                if image.shape[0]== 720 and image.shape[1]== 304 : self.indices[1].append(i)
-                if image.shape[0]== 720 and image.shape[1]== 512 : self.indices[2].append(i)
-            else:
-                if image.shape[0]== 256 and image.shape[1]== 152 : self.indices[0].append(i)
-                if image.shape[0]== 360 and image.shape[1]== 152 : self.indices[1].append(i)
-                if image.shape[0]== 360 and image.shape[1]== 256 : self.indices[2].append(i)
+        # for i, x in enumerate(self.images):
+        #     img_path = os.path.join(self.image_dir, x)
+        #     image = np.array(Image.open(img_path).convert('L'))  #to convert to grayscale
+        #     if self.size==25:
+        #         if image.shape[0]== 512 and image.shape[1]== 304 : self.indices[0].append(i)
+        #         if image.shape[0]== 720 and image.shape[1]== 304 : self.indices[1].append(i)
+        #         if image.shape[0]== 720 and image.shape[1]== 512 : self.indices[2].append(i)
+        #     else:
+        #         if image.shape[0]== 256 and image.shape[1]== 152 : self.indices[0].append(i)
+        #         if image.shape[0]== 360 and image.shape[1]== 152 : self.indices[1].append(i)
+        #         if image.shape[0]== 360 and image.shape[1]== 256 : self.indices[2].append(i)
 
     def __len__(self):
         return len(self.images)
 
-    def classes(self):
-        return self.indices
+    # def classes(self):
+    #     return self.indices
 
     def create_mask(self,ref):
         new_ref = ref
@@ -538,9 +440,8 @@ class MRIDatasetDownsampleEdges(Dataset):
         img_path = os.path.join(self.image_dir, self.images[index])
         label_path = os.path.join(self.label_dir, self.dir_dict[dict_key])
         
-        downsample_path = os.path.join(self.downsample_dir, self.downsample_dict[dict_key])
+        downsample_path = os.path.join(self.downsample_dir, dict_key)
         
-            
         image = cv2.imread(img_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY).astype(np.float32)
         label = cv2.imread(label_path)
@@ -548,6 +449,10 @@ class MRIDatasetDownsampleEdges(Dataset):
         downsample = cv2.imread(downsample_path)
         downsample = cv2.cvtColor(downsample, cv2.COLOR_BGR2GRAY).astype(np.float32)
 
+        # print(index)
+        # print(downsample_path)
+        # print(img_path)
+        # print(label_path)
 
         self.create_mask(label)
 
@@ -564,13 +469,6 @@ class MRIDatasetDownsampleEdges(Dataset):
         label = image2tensor(label, range_norm=False, half=False)
         downsample = image2tensor(downsample, range_norm=False, half=False)
         lr_edges = image-downsample
-
-        #applying mask
-        if self.apply_mask:
-            pass
-            # image = self.mask *image
-            # label = self.mask * label
-            # lr_edges = self.mask * lr_edges
 
 
         if self.transform is not None:

@@ -2,7 +2,7 @@
 
 
 model_name: 'srdense'
-exp_name: 'gaussian_edge_range_corr_dense_bottlenecksmall_hrdownsample_z_axis25_small4_no_mask_training_addition_f4_105_0.0001'
+exp_name: 'gaussian_dataset25_mul_no_mask_addition'
 edge_type: 'downsample'  #options: canny, downsample. if downsample provide opt.downsample_train_dir and opt.downsample_val_dir also
 loss_type: 'addition'  #options addition, original: with addition loss is calculated after addition
  #for addition mse is calculate after adding edges and loss calculated between (image and label image) else loss cal between edges
@@ -13,17 +13,20 @@ project_name: 'super_resolution'
 wandb: True 
 
 #dataset
-dataset_size: gaussian_dataset25
+dataset_size: gaussian_dataset25_mul
 size: 25
 dataset_name: 'z_axis'
+normalize_edges: False
+dir_dict: 'gaussian_dataset25_mul/annotation.pkl'
+val_dir_dict: 'gaussian_dataset25_mul/val_annotation.pkl'
 
 #training
-num_epochs: 105
+num_epochs: 205
 num_workers: 8
 seed: 123
 lr: 0.0001
 lr_decay_factor: 0.9  #lr is decay by 10% after every 150th or 250th epoch
-n_freq: 20 # model checkpoint saving frequency
+n_freq: 50 # model checkpoint saving frequency
 train_batch_size: 8
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 # opt.device: cpu or gpu during training
@@ -52,5 +55,5 @@ weights_file: None
 scale: 4
 patch: False
 
-note: 'This training is performed with the scaling of edges to (-1,1) using avg min and avg max of label edges from small4 train set and reducing the bottleneck channel in densenet (load densenet from densenet_smchannel'
+note: 'This training is performed with the scaling of edges to (-1,1) and correcting datasetclass using avg min and avg max of label edges from small4 train set and reducing the bottleneck channel in densenet (load densenet from densenet_smchannel'
 

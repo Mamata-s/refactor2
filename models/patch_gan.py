@@ -2,34 +2,48 @@
 import torch
 from torch import nn, optim
 from loss.ganloss import GANLoss
+from loss.perceptual_discriminator_loss import DiscriminatorPerceptualLoss
 from models.unet import Unet, UnetSmall
-from models.densenet import SRDenseNet
+from models.densenet_smchannel import SRDenseNet
 from models.resunet import ResUNet
 
 
 class PatchDiscriminator(nn.Module):
-    def __init__(self, input_c, num_filters=64, n_down=3):
+    def __init__(self, input_c=1, num_filters=64, n_down=3):
         super().__init__()
-        model = [self.get_layers(input_c, num_filters, norm=False)]
-        model += [self.get_layers(num_filters * 2 ** i, num_filters * 2 ** (i + 1), s=1 if i == (n_down - 1) else 2)
+        head = [self.get_layers(input_c, num_filters, norm=False)]
+        self.head = nn.Sequential(*head)
+        body = [self.get_layers(num_filters * 2 ** i, num_filters * 2 ** (i + 1), s=1 if i == (n_down - 1) else 2)
                   for i in range(n_down)]  # the 'if' statement is taking care of not using
+        self.body = nn.Sequential(*body)
         # stride of 2 for the last block in this loop
-        model += [self.get_layers(num_filters * 2 ** n_down, 1, s=1, norm=False,
+        tail = [self.get_layers(num_filters * 2 ** n_down, 1, s=1, norm=False,
                                   act=False)]  # Make sure to not use normalization or
-        # activation for the last layer of the model
-        self.model = nn.Sequential(*model)
+        self.tail = nn.Sequential(*tail)
+        self.classifier = nn.Sequential(
+            nn.Linear(88*62*1, 100),
+            nn.LeakyReLU(0.2, True),
+            nn.Linear(100, 1)
+        )
+      
 
-    def get_layers(self, ni, nf, k=4, s=2, p=1, norm=True,
-                   act=True):  # when needing to make some repeatitive blocks of layers,
+    def get_layers(self, ni, nf, k=4, s=2, p=1, norm=True,act=True):  # when needing to make some repeatitive blocks of layers,
         layers = [
             nn.Conv2d(ni, nf, k, s, p, bias=not norm)]  # it's always helpful to make a separate method for that purpose
         if norm: layers += [nn.BatchNorm2d(nf)]
         if act: layers += [nn.LeakyReLU(0.2, True)]
         return nn.Sequential(*layers)
 
-    def forward(self, x):
-        return self.model(x)
 
+    def forward(self, x, return_feature=False):
+        xh = self.head(x)
+        xb = self.body(xh)
+        xt = self.tail(xb)
+        xf = torch.flatten(xt, 1)
+        xc = self.classifier(xf)
+        if return_feature:
+          return [xh, xb, xt]
+        return xc
 
 def init_weights(net, init='norm', gain=0.02):
     def init_func(m):
@@ -54,7 +68,7 @@ def init_weights(net, init='norm', gain=0.02):
 
 
 def init_model(model, device,init="norm"):
-    model = model.to(device);print(model)
+    model = model.to(device)
     model = init_weights(model,init=init)
     return model
 
@@ -66,6 +80,7 @@ class PatchGAN(nn.Module):
 
         self.device = opt.device
         self.lambda_L1 = opt.lambda_L1
+        self.lambda_perceptual = opt.lambda_perceptual
         self.opt = opt
         if opt.generator_type:
             self.generator_type = opt.generator_type
@@ -74,12 +89,16 @@ class PatchGAN(nn.Module):
         if net_G is None:
             self.get_generator()
         else:
-            self.net_G =net_G    
-        self.net_D = init_model(PatchDiscriminator(input_c=1, n_down=opt.n_down, num_filters=opt.num_filters), self.device)
+            self.net_G = net_G    
+        # self.net_D = init_model(PatchDiscriminator(input_c=1, n_down=opt.n_down, num_filters=opt.num_filters), self.device)
+        self.net_D = init_model(PatchDiscriminator(), self.device)
         self.GANcriterion = GANLoss(gan_mode=opt.gan_mode).to(self.device)
+        self.discriminator_perceptual_loss = DiscriminatorPerceptualLoss().to(self.device)
         self.L1criterion = nn.L1Loss()
         self.opt_G = optim.Adam(self.net_G.parameters(), lr= opt.lr_G, betas=(beta1, beta2))
         self.opt_D = optim.Adam(self.net_D.parameters(), lr= opt.lr_D, betas=(beta1, beta2))
+        self.loss_type = opt.loss_type
+        self.edge_training= opt.edge_training
 
     def get_generator(self):
         if self.generator_type=='unet':
@@ -108,12 +127,31 @@ class PatchGAN(nn.Module):
         for p in model.parameters():
             p.requires_grad = requires_grad
 
-    def setup_input(self, images,labels):
-        self.images =images.to(self.device)
-        self.labels = labels.to(self.device)
+    def setup_input(self, images,labels,lr_edges=None, mask=None ):
+        self.lr_images =images.to(self.device)
+        self.label_images = labels.to(self.device)
+
+        if lr_edges is not None:
+            self.lr_edges = lr_edges.to(self.device)
+        if mask is not None:
+            self.mask = mask.to(self.device)
+
+        self.label_edges = self.label_images-self.lr_images
+
+        if self.edge_training:
+            self.images = self.lr_edges
+            if self.loss_type == 'addition':
+                self.labels = self.label_images  
+            else:
+                self.labels = self.label_edges
+        else:
+            self.images = self.lr_images
+            self.labels = self.label_images
 
     def forward(self):
         self.fake_images = self.net_G(self.images)
+        if self.loss_type=='addition':
+            self.fake_images= self.fake_images+ self.lr_images
 
     def backward_D(self):
         fake_preds = self.net_D(self.fake_images.detach())
@@ -127,7 +165,16 @@ class PatchGAN(nn.Module):
         fake_preds = self.net_D(self.fake_images)
         self.loss_G_GAN = self.GANcriterion(fake_preds, True)
         self.loss_G_L1 = self.L1criterion(self.fake_images, self.labels) * self.lambda_L1
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1
+
+        if self.lambda_perceptual > 0 :
+            self.perceptual_loss = self.discriminator_perceptual_loss(self.net_D,self.fake_images, self.labels)* self.lambda_perceptual
+        else:
+            self.perceptual_loss = 0.0
+        # print("loss l1", self.loss_G_L1)
+        # print("perceptual loss", self.perceptual_loss)
+        # print("loss G gan", self.loss_G_GAN)
+    
+        self.loss_G = self.loss_G_GAN + self.loss_G_L1 + self.perceptual_loss
         self.loss_G.backward()
 
     def backward_G_l1(self):
@@ -147,8 +194,6 @@ class PatchGAN(nn.Module):
         self.opt_G.zero_grad()
         self.backward_G()
         self.opt_G.step()
-
-        
 
     def optimize_l1(self):
         self.forward()
@@ -191,7 +236,7 @@ class PatchGAN(nn.Module):
             torch.save({
                     'epoch': epoch,
                     'generator_type':opt.generator_type,
-                    'init':opt.init,
+                    # 'init':opt.init,
                     'gan_mode': opt.gan_mode,
                     'growth_rate': opt.growth_rate,
                     'num_blocks':opt.num_blocks,

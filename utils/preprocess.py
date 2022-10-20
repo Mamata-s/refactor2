@@ -268,3 +268,28 @@ def crop_pad_kspace(data,pad=False,factor=2):  #function for cropping and/or pad
     else:
         img_reco_cropped = np.fft.ifft2(np.fft.ifftshift(arr)) 
     return np.abs(img_reco_cropped )
+
+
+
+def create_freq_mask(shape,factor=2, lower=False):
+
+  y,x = shape
+  mask_lower = np.zeros((y,x), dtype=np.complex_)
+
+  center_y = y//2 #defining the center of image in x and y direction
+  center_x = x//2
+  startx = center_x-(x//(factor*2))  
+  starty = center_y-(y//(factor*2))
+
+  mask_lower[starty:starty+(y//factor),startx:startx+(x//factor)] = 1
+  mask_upper = 1-mask_lower
+  if lower:
+    return mask_lower
+  else:
+    return mask_upper
+
+def get_high_freq(image,factor=2):
+  fshift = np.fft.fftshift(np.fft.fft2(image))
+  mask = create_freq_mask(fshift.shape,factor=factor, lower=False)
+  high_freq = fshift*mask
+  return np.abs(np.fft.ifft2(np.fft.ifftshift(high_freq)))

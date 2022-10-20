@@ -1,0 +1,63 @@
+#configuration file
+#this is file for training patch_gan with densenet as generator
+
+model_name: 'patch_gan'
+exp_name: 'patch_gan_dense_edges_addition_perceptual_loss'
+generator_type: 'dense'  #options: unet, unet_small, dense, resunet
+project_name: 'super_resolution'
+
+edge_training: True
+edge_type: 'downsample'  #options: canny, downsample. if downsample provide opt.downsample_train_dir and opt.downsample_val_dir also
+loss_type: 'addition'  #options addition, original: with addition loss is calculated after addition
+ #for addition mse is calculate after adding edges and loss calculated between (image and label image) else loss cal between edges
+
+dataset_size: gaussian_dataset25_mul
+size: 25
+dataset_name: 'z_axis'
+
+normalize_edges: False
+dir_dict: 'gaussian_dataset25_mul/annotation.pkl'
+val_dir_dict: 'gaussian_dataset25_mul/val_annotation.pkl'
+
+# for loading the pretrained model
+pretrained_generator: True
+pretrained_checkpoint: 'outputs/gaussian_dataset25_mul/srdense/gaussian_dataset25_mul_no_mask_original/checkpoints/z_axis/factor_4/epoch_100_f_4.pth'
+
+#parameter added for mask training
+apply_mask: False
+mask_threshold: 25
+
+num_epochs: 155
+num_workers: 8
+seed: 123
+lr: 0.0001
+n_freq: 20
+train_batch_size: 8
+val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
+factor: 4
+wandb: True 
+
+
+#gan unet (no need to set for loading pretrained model)
+# init: 'kaiming'  #options: norm,xavier,kaiming
+# growth_rate: 7
+# num_blocks: 5
+# num_layers: 5
+# scale: 4
+
+
+weights_file: None
+patch: False
+gan_mode: 'vanilla'  # options: vanilla, lsgan (vanilla for bce logit loss as the gan adverserial loss)
+
+
+#learning rate
+lr_G: 0.0001
+lr_D: 0.00001
+lambda_L1: 100
+lambda_perceptual: 1  #weights for discriminator perceptual loss
+
+
+# #patch discriminator (we use the default discriminator for z-axis images as variation in number of layers may give dimension mismatch error for final classification linear layer)
+# n_down: 2
+# num_filters: 64 

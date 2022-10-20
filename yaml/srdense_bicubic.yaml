@@ -1,0 +1,48 @@
+#configuration file
+#this is file for training srdense net with original training type
+
+
+model_name: 'srdense'
+# exp_name: 'srdense_norm_init'
+exp_name: 'kspace_up_and_down_factor_2'
+training_type: 'original'
+project_name: 'super_resolution'
+wandb: True 
+
+dataset_size: dataset_images/resolution_dataset25_full
+dataset_name: 'z_axis'
+size: 25
+
+dir_dict: 'dataset_images/resolution_dataset25_full/z_axis/factor_2/train_annotation.pkl'
+val_dir_dict: 'dataset_images/resolution_dataset25_full/z_axis/factor_2/val_annotation.pkl'
+num_epochs: 505
+num_workers: 8
+seed: 123
+lr: 0.001
+original_lr: 0.001
+lr_decay_factor: 0.9
+
+n_freq: 50 # model checkpoint saving frequency
+train_batch_size: 8
+val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
+# opt.device: cpu or gpu during training
+factor: 2
+init: 'norm' 
+addition: False
+# init: 'kaiming'  #options: norm,xavier,kaiming
+
+
+#srdense
+criterion: mse
+optimizer: adam
+growth_rate: 7
+num_blocks: 5
+num_layers: 5
+weights_file: None
+scale: 4
+
+
+patch: False
+
+
+

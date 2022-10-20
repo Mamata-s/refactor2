@@ -1,0 +1,2 @@
+usually annotation dictionary has key as lr name and value as hr name
+But in this case, we have multiple hr images for single lr image therefore we have hr name as key and lr name value

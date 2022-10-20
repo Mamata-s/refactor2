@@ -1,0 +1,45 @@
+#configuration file
+#this is file for training srdense net with original training type
+
+
+model_name: 'srdense'
+# exp_name: 'srdense_norm_init'
+exp_name: 'degradation_model'
+training_type: 'original'
+project_name: 'super_resolution'
+wandb: True 
+
+
+size: 25
+
+num_epochs: 2505
+num_workers: 8
+seed: 4576
+lr: 0.001
+original_lr: 0.001
+lr_decay_factor: 0.9
+
+n_freq: 100 # model checkpoint saving frequency
+train_batch_size: 8
+val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
+# opt.device: cpu or gpu during training
+factor: 2
+init: 'norm' 
+addition: False
+# init: 'kaiming'  #options: norm,xavier,kaiming
+
+
+#srdense
+criterion: mse
+optimizer: adam
+growth_rate: 7
+num_blocks: 5
+num_layers: 5
+weights_file: None
+scale: 4
+
+
+patch: False
+
+
+

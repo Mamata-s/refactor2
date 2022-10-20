@@ -55,7 +55,6 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
                 })
             wandb.log({"other/learning_rate": opt.lr})
             
-            # log_output_images(images, preds, labels) #overwrite on same table on every epoch
             if epoch % opt.n_freq == 0:
                 log_table_output.append_list(output_dict)  #create a class with list and function to loop through list and add to log table
         print('eval psnr: {:.4f}'.format(eval_psnr))
@@ -89,7 +88,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
 if __name__ == "__main__":
     '''get the configuration file'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/factor_4/dense_z_axis25_mask_training_addition_f4.yaml')
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='yaml/factor_2/dense_z_axis_25_no_mask_original_f2.yaml')
     # default='yaml/mask_training/canny_edges_original_f4_zaxis25.yaml'
     sys.argv = ['-f']
     opt   = parser.parse_known_args()[0]
@@ -126,6 +125,8 @@ if __name__ == "__main__":
     set_val_dir(opt)  #setting the training dataset dir
     set_train_dir(opt)  #setting the validation set dir
 
+
+
     '''load dataset (loading dataset based on dataset name and factor on arguments)'''
     if opt.edge_type in ['canny']:
         train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset_edges(opt)
@@ -148,9 +149,10 @@ if __name__ == "__main__":
     model = load_model(opt)
 
     '''print model'''
-    print(model)
+    # print(model)
 
-    print(opt)
+    # print(opt)
+
 
     '''setup the outputs and logging metric dirs on '''
     set_outputs_dir(opt) 
@@ -190,10 +192,6 @@ if __name__ == "__main__":
     print('training for factor ',opt.factor)
     print(model)
 
-
-    best_weights = copy.deepcopy(model.state_dict())
-    best_epoch = 0
-    best_psnr = 0.0
 
     '''initialize the logging dictionary'''
     metric_dict = LogMetric( { 'train_loss' : [],'epoch':[]})

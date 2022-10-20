@@ -9,15 +9,17 @@ import torch.nn as nn
 from utils.image_quality_assessment import PSNR,SSIM
 import copy
 from utils.logging_metric import LogMetric,create_loss_meters_srdense
-from utils.train_utils import adjust_learning_rate, read_dictinary
+from utils.train_utils import adjust_learning_rate, read_dictionary
 from utils.train_epoch import train_epoch_srdense,validate_srdense
 from utils.preprocess import apply_model,apply_model_using_cv
 from utils.general import save_configuration,save_configuration_yaml,LogOutputs
 from utils.config import set_outputs_dir,set_training_metric_dir,set_plots_dir,set_val_dir,set_train_dir
 import os
 import wandb
+from dataset.dataset_cv import MRIDataset
 import json
-os.environ["CUDA_VISIBLE_DEVICES"]='0,1'
+os.environ["CUDA_VISIBLE_DEVICES"]='0'
+
 
 def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb=None):
 
@@ -41,7 +43,7 @@ def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dat
         images,labels,preds = train_epoch_srdense(opt,model,criterion,optimizer,train_datasets,train_dataloader,epoch,epoch_losses)
         eval_loss, eval_l1,eval_psnr, eval_ssim,eval_hfen = validate_srdense(opt,model, eval_dataloader,criterion,addition=opt.addition)
         
-        apply_model_using_cv(model,epoch,opt,addition= opt.addition)
+        # apply_model_using_cv(model,epoch,opt,addition= opt.addition)
 
         if opt.wandb:
             wandb.log({"val/val_loss" : eval_loss,
@@ -109,11 +111,13 @@ if __name__ == "__main__":
     opt  = parser.parse_args()
 
     '''adding seed for reproducibility'''
-    torch.manual_seed(opt.seed)
+    # torch.manual_seed(opt.seed)
 
     '''set device'''
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     opt.device = device
+   
+
 
     '''Set the addition argument value for saving epoch images'''
     check=True
@@ -128,6 +132,8 @@ if __name__ == "__main__":
 
     set_val_dir(opt)  #setting the training datasset dir
     set_train_dir(opt)  #setting the validation set dir
+
+
     '''load dataset (loading dataset based on dataset name and factor on arguments)'''
     train_dataloader,eval_dataloader,train_datasets,val_datasets = load_dataset(opt)
 
@@ -147,6 +153,7 @@ if __name__ == "__main__":
     set_plots_dir(opt)
 
 
+    
     '''wrap model for data parallelism'''
     num_of_gpus = torch.cuda.device_count()
     print("Number of GPU available", num_of_gpus)
@@ -154,6 +161,8 @@ if __name__ == "__main__":
         model = nn.DataParallel(model,device_ids=[*range(num_of_gpus)])
         opt.data_parallel = True
         print("Multiple GPU Training")
+    else:
+        opt.data_parallel=False
 
     '''setup loss and optimizer '''
     criterion = get_criterion(opt)
@@ -193,6 +202,7 @@ if __name__ == "__main__":
 
     '''training the model'''
     train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader,wandb = wandb)
+
 
     if opt.wandb:
         wandb.unwatch(model)

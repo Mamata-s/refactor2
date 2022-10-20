@@ -4,27 +4,27 @@
 
 model_name: 'srdense'
 # exp_name: 'srdense_norm_init'
-exp_name: 'gaussian_mul_f2_105'
+exp_name: 'srdense_median_blur'
 training_type: 'original'
 project_name: 'super_resolution'
 wandb: True 
 
-dataset_size: gaussian_dataset25_mul
+dataset_size: dataset_images/median_blur_dataset25
+
 dataset_name: 'z_axis'
 size: 25
 
-dir_dict: 'gaussian_dataset25_mul/annotation.pkl'
-val_dir_dict: 'gaussian_dataset25_mul/val_annotation.pkl'
-
-num_epochs: 105
+dir_dict: 'dataset_images/median_blur_dataset25/annotation_train_dict.pkl'
+val_dir_dict: 'dataset_images/median_blur_dataset25/annotation_val_dict.pkl'
+num_epochs: 505
 num_workers: 8
-seed: 123
-lr: 0.006
-original_lr: 0.006
+seed: 23467
+lr: 0.001
+original_lr: 0.001
 lr_decay_factor: 0.9
 
-n_freq: 20 # model checkpoint saving frequency
-train_batch_size: 16
+n_freq: 50 # model checkpoint saving frequency
+train_batch_size: 8
 val_batch_size: 1   #set the val batch size to 1 always as we need to claculate the psnr and ssim
 # opt.device: cpu or gpu during training
 factor: 2

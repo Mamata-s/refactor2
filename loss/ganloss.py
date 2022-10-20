@@ -3,7 +3,7 @@ from torch import nn
 
 
 class GANLoss(nn.Module):
-    def __init__(self, gan_mode='vanilla', real_label=1.0, fake_label=0.0):
+    def __init__(self, gan_mode='vanilla', real_label=0.9, fake_label= 0.1):
         super().__init__()
         self.register_buffer('real_label', torch.tensor(real_label))
         self.register_buffer('fake_label', torch.tensor(fake_label))
@@ -23,3 +23,4 @@ class GANLoss(nn.Module):
         labels = self.get_labels(preds, target_is_real)
         loss = self.loss(preds, labels)
         return loss
+
