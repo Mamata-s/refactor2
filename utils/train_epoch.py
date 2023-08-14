@@ -11,8 +11,6 @@ from utils.logging_metric import update_epoch_losses, update_losses, log_results
 from utils.preprocess import hfen_error
 from utils.train_utils import normalize_edges,denormalize_edges
 
-
-
 def train_epoch_edges(opt,model,criterion,optimizer,train_dataset,train_dataloader,epoch,epoch_losses,loss_type='addition'): 
     with tqdm(total=(len(train_dataset) - len(train_dataset) % opt.train_batch_size), ncols=80) as t:
         t.set_description('epoch: {}/{}'.format(epoch, opt.num_epochs - 1))
@@ -131,7 +129,6 @@ def validate_edges(opt,model, dataloader,criterion=nn.MSELoss()):
     return loss.item()/count, l1.item()/count,psnr.item()/count, ssim.item()/count,hfen/count
 
 
-
 def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_dataloader,epoch,epoch_losses): 
     with tqdm(total=(len(train_dataset) - len(train_dataset) % opt.train_batch_size), ncols=80) as t:
         t.set_description('epoch: {}/{}'.format(epoch, opt.num_epochs - 1))
@@ -157,8 +154,11 @@ def train_epoch_srdense(opt,model,criterion,optimizer,train_dataset,train_datalo
             update_epoch_losses(epoch_losses, count=len(images),values=[loss.item()])
             
             optimizer.zero_grad()
+            # a = list(model.parameters())[0].clone()
             loss.backward()
             optimizer.step()
+            # b = list(model.parameters())[0].clone()
+            print("is parameter same after backpropagation?",torch.equal(a.data, b.data))
 
         t.set_postfix(loss='{:.6f}'.format(epoch_losses['train_loss'].avg))
         t.update(len(images))

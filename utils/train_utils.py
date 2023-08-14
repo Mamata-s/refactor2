@@ -18,10 +18,13 @@ from models.rrdbnet3d import RRDBNet3D
 from models.rrdbnet import RRDBNet 
 from models.patch_gan import PatchGAN,init_model
 from models.unet import Unet, UnetSmall
+from models.srcnn import SRCNN
 from models.resunet import ResUNet
 import torch.optim as optim
+from loss.content_loss import ContentLoss
 import pickle
 import utils.dataset_properties as dt
+from loss.ssim_loss import SSIM
 
 def read_dictionary(dir_dict):
     '''Read annotation dictionary pickle'''
@@ -50,10 +53,13 @@ def denormalize_edges(edge_tensor):
 
 
 ''' set the dataset path based on opt.dataset,opt.factor values and load & return the same dataset/dataloader'''
-def load_dataset(opt):
+def load_dataset(opt, load_eval=True):
     train_dataloader,train_datasets =load_train_dataset(opt)
-    eval_dataloader,val_datasets = load_val_dataset(opt)
-    return train_dataloader,eval_dataloader,train_datasets,val_datasets
+    if load_eval:
+        eval_dataloader,val_datasets = load_val_dataset(opt)
+        return train_dataloader,eval_dataloader,train_datasets,val_datasets
+    else: 
+        return train_dataloader,train_datasets
 
 
 def load_train_dataset(opt):
@@ -137,6 +143,9 @@ def load_model(opt):
     elif opt.model_name in ['rrdbnet','rrdb']:
         model = RRDBNet(num_block = opt.num_blocks) #no need to intialize,already implemented in residual block
         model = model.to(opt.device)
+    elif opt.model_name in ['srcnn']:
+        model = SRCNN() #no need to intialize,already implemented in residual block
+        model = model.to(opt.device)
     else:
         print(f'Model {opt.model_name} not implemented')
     return model
@@ -156,11 +165,23 @@ def load_model_3d(opt):
 '''get the optimizer based on opt.criterion value'''
 def get_criterion(opt):
     if opt.criterion in ['mse']:
+        print("Using MSE Loss")
         criterion = nn.MSELoss()
     elif opt.criterion in ['l1']:
         criterion = nn.L1Loss()
+        print("Using L1 lOSS")
+    elif opt.criterion in ['content']:
+        print("Using VGG feature loss")
+        # feature_model_extractor_node = "features.35"
+        # feature_model_normalize_mean = [0.485, 0.456, 0.406]
+        # feature_model_normalize_std = [0.229, 0.224, 0.225]
+        criterion = ContentLoss(opt)
+    elif opt.criterion in ['SSIM','ssim']:
+        print("Using SSIM loss")
+        criterion  = SSIM()
     else:
-        criterion = nn.MSELoss()
+        print("Criterion not implemented")
+        criterion = None
     return criterion
 
 

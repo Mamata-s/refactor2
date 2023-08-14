@@ -18,7 +18,7 @@ import os
 import wandb
 from dataset.dataset_cv import MRIDataset
 import json
-os.environ["CUDA_VISIBLE_DEVICES"]='1'
+os.environ["CUDA_VISIBLE_DEVICES"]='0,1'
 
 
 def train(opt,model,criterion,optimizer,train_datasets,train_dataloader,eval_dataloader=None,wandb=None):
@@ -147,6 +147,7 @@ if __name__ == "__main__":
 
     '''print model'''
     print(model)
+    # quit();
 
     '''setup the outputs and logging metric dirs on '''
     set_outputs_dir(opt) 

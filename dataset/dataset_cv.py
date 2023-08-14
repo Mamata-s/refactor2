@@ -26,7 +26,7 @@ def read_dictinary(dir_dict):
     return output
 
 class MRIDataset(Dataset):
-    def __init__(self, image_dir, label_dir,transform=None,size=50, dir_dict=None):
+    def __init__(self, image_dir, label_dir,transform=None,size=50, dir_dict=None, annotation_with_path= True):
         '''
         image_dir: directory path of lr images
         label_dir: directory path of label images
@@ -35,15 +35,22 @@ class MRIDataset(Dataset):
         self.image_dir = image_dir
         self.label_dir = label_dir
         self.transform = transform
-        self.images = os.listdir(image_dir)
-        self.labels = os.listdir(label_dir)
-        # assert len(self.images) == len(self.labels), ('images folder and label folder should have the same length, but got '
-        #                                         f'{len(self.images)} and {len(self.labels)}.')  #does not work for multiple gaussian images
+        self.annotation_with_path = annotation_with_path
+
         if dir_dict:
             self.dir_dict = read_dictinary(dir_dict)
         else:
             self.dir_dict = create_dictionary(image_dir,label_dir)
-        self.indices = [[] for _ in range(3)]
+
+        if annotation_with_path:
+            self.images = list(self.dir_dict.keys())
+        else:
+            self.images = os.listdir(image_dir)
+            self.labels = os.listdir(label_dir)
+        # assert len(self.images) == len(self.labels), ('images folder and label folder should have the same length, but got '
+        #                                         f'{len(self.images)} and {len(self.labels)}.')  #does not work for multiple gaussian images
+        
+        # self.indices = [[] for _ in range(3)]
         self.size = size
         # for i, x in enumerate(self.images):
         #     img_path = os.path.join(self.image_dir, x)
@@ -65,14 +72,15 @@ class MRIDataset(Dataset):
 
     def __getitem__(self, index):
         dict_key = self.images[index]
-        # print(self.dir_dict)
-        # quit();
 
-        img_path = os.path.join(self.image_dir, self.images[index])
-
-        #if dict keys and values does not contain .png
-        label_name = self.dir_dict[dict_key] 
-        label_path = os.path.join(self.label_dir, label_name)
+        if self.annotation_with_path:
+            img_path = dict_key
+            label_path = self.dir_dict[dict_key] 
+        else:
+            img_path = os.path.join(self.image_dir, self.images[index])
+            #if dict keys and values does not contain .png
+            label_name = self.dir_dict[dict_key] 
+            label_path = os.path.join(self.label_dir, label_name)
 
         # print("image path",img_path)
         # print("label path",label_path)

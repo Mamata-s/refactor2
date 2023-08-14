@@ -2,21 +2,21 @@
 #this is file for training srdense net with original training type
 
 
-model_name: 'srdense'
-exp_name: 'srdense_mean_blur_dataset25'
+model_name: 'rrdbnet'
+exp_name: 'rrdbnet_hanning_dataset25'
 training_type: 'original'
 project_name: 'super_resolution'
 wandb: True 
 
-dataset_size: dataset_images_srdense/L1_loss/mean_blur_dataset25
+dataset_size: dataset_images/hanning_dataset25
 
 dataset_name: 'z_axis'
 size: 25
 
-dir_dict: 'dataset_images/mean_blur_dataset25/annotation_train_dict_full_path.pkl'
+dir_dict: 'dataset_images/hanning_dataset25/annotation_train_dict_full_path.pkl'
 # val_dir_dict: 'dataset_images/hamming_dataset25/annotation_val_dict.pkl'
-num_epochs: 502
-num_workers: 8
+num_epochs: 505
+num_workers: 4
 seed: 547
 lr: 0.0001
 original_lr: 0.0001
@@ -32,19 +32,12 @@ addition: False
 # init: 'kaiming'  #options: norm,xavier,kaiming
 
 
-#srdense
-criterion: l1
+#rrdbnet
+criterion: mse
 optimizer: adam
-growth_rate: 7
-num_blocks: 5
-num_layers: 5
 weights_file: None
-scale: 4
+num_blocks: 7
 
-
-feature_model_extractor_node: "features.35"
-feature_model_normalize_mean: [0.485, 0.456, 0.406]
-feature_model_normalize_std: [0.229, 0.224, 0.225]
 
 patch: False
 

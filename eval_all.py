@@ -50,8 +50,10 @@ def load_model(checkpoint_path,device):
         # new_key = n
         if new_key in state_dict.keys():
             state_dict[new_key].copy_(p)
+        elif n in state_dict.keys():
+            state_dict[n].copy_(p)
         else:
-            raise KeyError(new_key)
+            raise KeyError(n)
     return model
  
 
@@ -81,6 +83,10 @@ def predict_model(model,image_path,label_path,device,psnr,ssim,mse,nrmse):
     init_ssim = ssim(degraded, ref).item()
     init_mse = mse(degraded, ref).item()
     init_nrmse = nrmse(ref,degraded).item()
+
+    print(pre.shape)
+    print(ref.shape)
+    quit();
     
 
     model_psnr = psnr(pre, ref).item()
@@ -243,13 +249,14 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', type=str, metavar='',required=False,help='checkpoint path')
     opt = parser.parse_args()
 
-    sigma_value = [25,50,75,100,125,150]
-    sigmas = ['sigma_25','sigma_50', 'sigma_75', 'sigma_100', 'sigma_125','sigma_150','bicubic','combined', 'kspace','simulated degradation', 'real degraded' ]
+    # sigma_value = [25,50,75,100,125,150]
+    # sigmas = ['sigma_25','sigma_50', 'sigma_75', 'sigma_100', 'sigma_125','sigma_150','bicubic','combined', 'kspace','simulated degradation', 'real degraded' ]
+    model_names = ['']
 
-    checkpoint1 = []
-    for sigma in  sigma_value:
-        checkpoint = 'outputs/gaussian_dataset25_sigma'+str(sigma)+'/srdense/gaussian_mul_wo_circular_mask_sigma'+str(sigma)+'/checkpoints/z_axis/factor_2/epoch_500_f_2.pth'
-        checkpoint1.append(checkpoint)
+    # checkpoint1 = []
+    # for sigma in  sigma_value:
+    #     checkpoint = 'outputs/gaussian_dataset25_sigma'+str(sigma)+'/srdense/gaussian_mul_wo_circular_mask_sigma'+str(sigma)+'/checkpoints/z_axis/factor_2/epoch_500_f_2.pth'
+    #     checkpoint1.append(checkpoint)
 
     # checkpoint2 = ['outputs/dataset_images/bicubic_dataset25/srdense/bicubic_up_and_down_factor_2/checkpoints/z_axis/factor_2/epoch_500_f_2.pth',
     # 'outputs/dataset_images/combined_kspace_gaussian_bicubic/srdense/srdense_combine_kpsace_bicubic_gaussian/checkpoints/z_axis/factor_2/epoch_250_f_2.pth',
@@ -258,47 +265,66 @@ if __name__ == '__main__':
     # 'outputs/dataset_images/upscaled_50_micron_datset/srdense/srdense_50_micron_degradation/checkpoints/z_axis/factor_2/epoch_500_f_2.pth'
     # ]
     # checkpoints = checkpoint1 + checkpoint2
-    checkpoints = checkpoint1 
+    # checkpoints = checkpoint1 
+
+    model_names = ['combined_all','bicubic','gaussian', 'gaussian_bicubic', 'gaussian_bicubic_hann','han_ham_mean']
+    checkpoints =  [
+        'outputs/dataset_images/combine_all_degradation_fix_dataset/srdense/srdense_combine_all_degradation_fix_dataset/checkpoints/z_axis/factor_2/epoch_500_f_2.pth',
+        'outputs/dataset_images/bicubic_dataset25/srdense/bicubic_up_and_down_factor_2/checkpoints/z_axis/factor_2/epoch_500_f_2.pth',
+        'outputs/gaussian_dataset25_sigma100/srdense/gaussian_mul_wo_circular_mask_sigma100/checkpoints/z_axis/factor_2/epoch_500_f_2.pth',
+        'outputs/dataset_images/gauss_bicubic_degradation_combine_fix_train/srdense/srdense_gauss_bicubic_degradation_combine_fix_train/checkpoints/z_axis/factor_2/epoch_500_f_2.pth',
+        'outputs/dataset_images/gauss_bicubic_hann_degradation_combine_fix_train/srdense/gauss_bicubic_hann_degradation_combine_fix_train/checkpoints/z_axis/factor_2/epoch_500_f_2.pth',
+        'outputs/dataset_images/han_ham_mean_degradation_combine_fix_train/srdense/srdense_han_ham_mean_degradation_combine_fix_train/checkpoints/z_axis/factor_2/epoch_500_f_2.pth'
+    ]
     
     
-    names = ['sigma_25','sigma_50', 'sigma_75', 'sigma_100', 'sigma_125','sigma_150']
+    # dataset_names = ['sigma_25','sigma_50', 'sigma_75', 'sigma_100', 'sigma_125','sigma_150']
+    dataset_names = ['bartlett']
 
     # names = ['sigma_50', 'sigma_75', 'sigma_100', 'sigma_125','bicubic','combined', 'kspace','gen degradation', 'real degraded']
 
     # annotations = 'upsample/combine/annotation_hr1_dict.pkl'
 
-    annotations = [
-        'dataset_images/gaussian_dataset25_sigma25/test_annotation.pkl',
-        'dataset_images/gaussian_dataset25_sigma50/test_annotation.pkl',
-        'dataset_images/gaussian_dataset25_sigma75/test_annotation.pkl',
-        'dataset_images/gaussian_dataset25_sigma100/test_annotation.pkl',
-        'dataset_images/gaussian_dataset25_sigma125/test_annotation.pkl',
-        'dataset_images/gaussian_dataset25_sigma150/test_annotation.pkl',
+    # annotations = [
+    #     'dataset_images/gaussian_dataset25_sigma25/test_annotation.pkl',
+    #     'dataset_images/gaussian_dataset25_sigma50/test_annotation.pkl',
+    #     'dataset_images/gaussian_dataset25_sigma75/test_annotation.pkl',
+    #     'dataset_images/gaussian_dataset25_sigma100/test_annotation.pkl',
+    #     'dataset_images/gaussian_dataset25_sigma125/test_annotation.pkl',
+    #     'dataset_images/gaussian_dataset25_sigma150/test_annotation.pkl',
 
-        'dataset_images/bicubic_dataset25/z_axis/factor_2/annotation_test_dict.pkl',
-        'dataset_images/combined_kspace_gaussian_bicubic/test_annotation.pkl',
-        'dataset_images/resolution_dataset25_full/z_axis/factor_2/test_annotation.pkl',
-        'dataset_images/simulated_degradation_dataset25/test_annotation.pkl',
-        'dataset_images/upscaled_50_micron_datset/test_annotation.pkl'
-    ] 
+    #     'dataset_images/bicubic_dataset25/z_axis/factor_2/annotation_test_dict.pkl',
+    #     'dataset_images/combined_kspace_gaussian_bicubic/test_annotation.pkl',
+    #     'dataset_images/resolution_dataset25_full/z_axis/factor_2/test_annotation.pkl',
+    #     'dataset_images/simulated_degradation_dataset25/test_annotation.pkl',
+    #     'dataset_images/upscaled_50_micron_datset/test_annotation.pkl'
+    # ] 
+    annotations =['dataset_images/bartlett_test_set/bartlett_test_annotation.pkl']
+    image_path_sigma = ['dataset_images/bartlett_test_set/factor_2/']
 
-    image_path_sigma = [
-        'dataset_images/gaussian_dataset25_sigma25/z_axis/factor_2/test',
-        'dataset_images/gaussian_dataset25_sigma50/z_axis/factor_2/test',
-        'dataset_images/gaussian_dataset25_sigma75/z_axis/factor_2/test',
-        'dataset_images/gaussian_dataset25_sigma100/z_axis/factor_2/test',
-        'dataset_images/gaussian_dataset25_sigma125/z_axis/factor_2/test',
-        'dataset_images/gaussian_dataset25_sigma150/z_axis/factor_2/test',
+    # annotations = ['dataset_images/upscaled_50_micron_datset/test_annotation.pkl']
+    # image_path_sigma = ['dataset_images/upscaled_50_micron_datset/z_axis/factor_2/test/']
 
-        'dataset_images/bicubic_dataset25/z_axis/factor_2/test',
-        'dataset_images/combined_kspace_gaussian_bicubic/z_axis/factor_2/test',
-        'dataset_images/resolution_dataset25_full/z_axis/factor_2/test',
-        'dataset_images/simulated_degradation_dataset25/z_axis/factor_2/test',
-        'dataset_images/upscaled_50_micron_datset/z_axis/factor_2/test'
+    # image_path_sigma = [
+    #     'dataset_images/gaussian_dataset25_sigma25/z_axis/factor_2/test',
+    #     'dataset_images/gaussian_dataset25_sigma50/z_axis/factor_2/test',
+    #     'dataset_images/gaussian_dataset25_sigma75/z_axis/factor_2/test',
+    #     'dataset_images/gaussian_dataset25_sigma100/z_axis/factor_2/test',
+    #     'dataset_images/gaussian_dataset25_sigma125/z_axis/factor_2/test',
+    #     'dataset_images/gaussian_dataset25_sigma150/z_axis/factor_2/test',
 
-    ]
+    #     'dataset_images/bicubic_dataset25/z_axis/factor_2/test',
+    #     'dataset_images/combined_kspace_gaussian_bicubic/z_axis/factor_2/test',
+    #     'dataset_images/resolution_dataset25_full/z_axis/factor_2/test',
+    #     'dataset_images/simulated_degradation_dataset25/z_axis/factor_2/test',
+    #     'dataset_images/upscaled_50_micron_datset/z_axis/factor_2/test'
 
-    label_path ='dataset_images/combined_kspace_gaussian_bicubic/z_axis/label/test'
+
+
+    # label_path ='dataset_images/combined_kspace_gaussian_bicubic/z_axis/label/test'
+
+    label_path = 'dataset_images/hamming_dataset25/z_axis/label/test/'
+    # label_path = 'dataset_images/upscaled_50_micron_datset/z_axis/label/test'
     
 
     '''set device'''
@@ -324,8 +350,8 @@ if __name__ == '__main__':
     initial_sigma_list = []
     model_sigma_list = []
 
-    for index,name in enumerate(names):
-        for _,checkpoint in enumerate(checkpoints):
+    for index,name in enumerate(dataset_names):
+        for idx,checkpoint in enumerate(checkpoints):
             model = load_model(checkpoint,device)
             if device != 'cpu':
                 num_of_gpus = torch.cuda.device_count()
@@ -336,16 +362,17 @@ if __name__ == '__main__':
             opt.model=model
 
             opt.image_path = image_path_sigma[index]
-            if sigmas[index] == 'real degraded':
-                opt.label_path = 'dataset_images/upscaled_50_micron_datset/z_axis/label/test'
-            else:
-                opt.label_path = label_path
+            # if sigmas[index] == 'real degraded':
+            #     opt.label_path = 'dataset_images/upscaled_50_micron_datset/z_axis/label/test'
+            # else:
+            #     opt.label_path = label_path
+            opt.label_path =label_path
 
             initial_sigma, model_sigma = evaluate_model(opt)  # each dictionary of list with keys psnr,ssim,mse,nrmse,hfen
             print("Image path", opt.image_path)
             print("Label path",opt.label_path)
             print("checkpoint", checkpoint)
-            print("Evaluating for model", sigmas[index])
+            print("Evaluating for model", model_names[idx])
             print("MODEL METRIC")
             for metric in metrics:
                 print("Average Values for {} is {} ".format(metric,statistics.mean(model_sigma[metric])))
